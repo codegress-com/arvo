@@ -62,10 +62,22 @@ cargo test --features sql
 
 ---
 
+## Branch policy
+
+**Nobody pushes directly to `main`** — including maintainers. Every change goes through a PR, even trivial ones. This keeps the git history clean and CI always green on `main`.
+
+| Branch name | Purpose |
+|---|---|
+| `main` | Protected — always releasable |
+| `feat/<name>` | New value object or feature |
+| `fix/<name>` | Bug fix |
+| `docs/<name>` | Documentation only |
+| `chore/<name>` | CI, deps, tooling |
+
 ## Submitting a pull request
 
 1. **Open an issue first** for non-trivial changes so we can discuss the approach.
-2. Fork the repo and create a branch: `git checkout -b feat/my-change`.
+2. Fork the repo (external contributors) or create a branch directly (maintainers): `git checkout -b feat/my-change`.
 3. Write your change and add tests.
 4. Run the full local check:
    ```bash
