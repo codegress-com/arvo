@@ -1,0 +1,23 @@
+# Rust build artifacts
+/target/
+
+# Cargo lock — omit for libraries (consumers pin their own versions)
+# Cargo.lock  ← intentionally NOT ignored; keep it for reproducible CI runs
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Editor
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+.DS_Store
+
+# Coverage output
+lcov.info
+tarpaulin-report.html
+coverage/
