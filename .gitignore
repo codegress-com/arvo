@@ -18,7 +18,6 @@
 .DS_Store
 
 # Repo management scripts (keep locally, not in repo)
-setup-github-repo.sh
 scripts/
 
 # Coverage output
