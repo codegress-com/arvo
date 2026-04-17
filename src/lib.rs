@@ -43,5 +43,5 @@ pub mod prelude {
     pub use crate::traits::ValueObject;
 
     #[cfg(feature = "contact")]
-    pub use crate::contact::EmailAddress;
+    pub use crate::contact::{CountryCode, EmailAddress};
 }
