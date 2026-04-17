@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to release (e.g. 0.2.0 — without the v prefix)"
+        description: "Version to release (e.g. 0.2.0 — must already be set in Cargo.toml)"
         required: true
         type: string
 
@@ -29,59 +29,60 @@ jobs:
       - run: cargo clippy --features full,serde -- -Dclippy::all
       - run: cargo test --features full,serde
 
-  # ── Bump version, commit, tag ─────────────────────────────────────────────
-  bump:
-    name: bump version
+  # ── Verify Cargo.toml version matches input ───────────────────────────────
+  verify-version:
+    name: verify version
     runs-on: ubuntu-latest
     needs: preflight
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Cargo.toml version matches input
+        run: |
+          CARGO_VERSION=$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['packages'][0]['version'])")
+          INPUT_VERSION="${{ inputs.version }}"
+          echo "Cargo.toml: $CARGO_VERSION"
+          echo "Input:      $INPUT_VERSION"
+          if [ "$CARGO_VERSION" != "$INPUT_VERSION" ]; then
+            echo "::error::Version mismatch — bump Cargo.toml to $INPUT_VERSION in a PR first."
+            exit 1
+          fi
+
+  # ── Create and push tag ───────────────────────────────────────────────────
+  tag:
+    name: tag
+    runs-on: ubuntu-latest
+    needs: verify-version
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Use a PAT so the push triggers downstream workflows
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Bump version in Cargo.toml
-        run: |
-          VERSION="${{ inputs.version }}"
-          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
-          # Verify the change
-          grep "^version" Cargo.toml
-
-      - name: Update Cargo.lock
-        run: cargo update --workspace
-
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Commit and tag
+      - name: Create and push tag
         id: tag
         run: |
           TAG="v${{ inputs.version }}"
-          git add Cargo.toml Cargo.lock
-          if git diff --cached --quiet; then
-            echo "Version already set to ${{ inputs.version }}, skipping commit."
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping."
           else
-            git commit -m "chore: release $TAG"
-            git push origin main
+            git tag "$TAG"
+            git push origin "$TAG"
           fi
-          git tag "$TAG"
-          git push origin "$TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
   # ── Publish to crates.io ──────────────────────────────────────────────────
   publish:
     name: publish
     runs-on: ubuntu-latest
-    needs: bump
+    needs: tag
     environment: crates-io
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.bump.outputs.tag }}
+          ref: ${{ needs.tag.outputs.tag }}
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: cargo publish
@@ -93,14 +94,14 @@ jobs:
   github-release:
     name: github-release
     runs-on: ubuntu-latest
-    needs: [bump, publish]
+    needs: [tag, publish]
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.bump.outputs.tag }}
+          ref: ${{ needs.tag.outputs.tag }}
           fetch-depth: 0
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.bump.outputs.tag }}
+          tag_name: ${{ needs.tag.outputs.tag }}
           generate_release_notes: true
           make_latest: true
