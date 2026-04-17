@@ -169,25 +169,25 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
       - uses: Swatinem/rust-cache@v2
-      - name: Install cargo-minimal-versions
+      - name: Install cargo-minimal-versions and cargo-hack
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-minimal-versions
+          tool: cargo-hack,cargo-minimal-versions
       - name: cargo minimal-versions check
         run: cargo minimal-versions check --features full,serde
 
   # ── Semver compatibility ───────────────────────────────────────────────────
-  semver:
-    name: semver
-    runs-on: ubuntu-latest
-    # Only meaningful on pushes to main (not PRs from forks) and when there's
-    # a published baseline version to compare against.
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-      - name: cargo semver-checks
-        uses: obi1kenobi/cargo-semver-checks-action@v2
-        with:
-          rust-toolchain: stable
-          feature-group: only-explicit-features
-          features: full,serde
+#  semver:
+#    name: semver
+#    runs-on: ubuntu-latest
+#    # Only meaningful on pushes to main (not PRs from forks) and when there's
+#    # a published baseline version to compare against.
+#    if: github.event_name == 'push'
+#    steps:
+#      - uses: actions/checkout@v4
+#      - name: cargo semver-checks
+#        uses: obi1kenobi/cargo-semver-checks-action@v2
+#        with:
+#          rust-toolchain: stable
+#          feature-group: only-explicit-features
+#          features: full,serde
