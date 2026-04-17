@@ -151,18 +151,18 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 
 ## Roadmap
 
-77 value object types planned across 8 domain modules. Types are only added when they bring validation, normalisation, or domain semantics that existing crates don't already provide.
+62 value object types planned across 8 domain modules. Types are only added when they bring validation, normalisation, or domain semantics that existing crates don't already provide.
 
 | Feature | Highlights | Types | Status |
 |:---|:---|:---:|:---:|
-| `contact` | `EmailAddress`, `PhoneNumber`, `PostalAddress` | 11 | 1 / 11 |
-| `identifiers` | `Slug`, `Ean13`, `Isbn13`, `Vin`, `Sku` | 9 | 0 / 9 |
-| `finance` | `Money`, `Iban`, `Bic`, `VatNumber`, `CreditCardNumber` | 10 | 0 / 10 |
-| `temporal` | `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | 6 | 0 / 6 |
-| `geo` | `Coordinate`, `BoundingBox`, `TimeZone`, `Angle` | 9 | 0 / 9 |
-| `net` | `Url`, `IpAddress`, `MacAddress`, `ApiKey` | 10 | 0 / 10 |
-| `measurement` | `Length`, `Weight`, `Temperature`, `Speed` | 10 | 0 / 10 |
-| `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 12 | 0 / 12 |
+| `contact` | `EmailAddress`, `PhoneNumber`, `CountryCode`, `PostalAddress` | 5 | 1 / 5 |
+| `identifiers` | `Slug`, `Ean13`, `Isbn13`, `Vin` | 7 | 0 / 7 |
+| `finance` | `Money`, `Iban`, `Bic`, `VatNumber`, `CreditCardNumber` | 9 | 0 / 9 |
+| `temporal` | `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | 5 | 0 / 5 |
+| `geo` | `Latitude`, `Longitude`, `Coordinate`, `BoundingBox`, `TimeZone` | 6 | 0 / 6 |
+| `net` | `Url`, `IpAddress`, `MacAddress`, `ApiKey`, `Port` | 10 | 0 / 10 |
+| `measurement` | `Length`, `Weight`, `Temperature`, `Speed` ⚠️ needs unit conversion design | 10 | 0 / 10 |
+| `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 10 | 0 / 10 |
 
 → Full details and design rationale in [ROADMAP.md](ROADMAP.md)
 
