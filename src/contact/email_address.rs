@@ -38,9 +38,9 @@ static EMAIL_REGEX: Lazy<Regex> =
 pub struct EmailAddress(String);
 
 impl ValueObject for EmailAddress {
-    type Input  = EmailAddressInput;
+    type Input = EmailAddressInput;
     type Output = EmailAddressOutput;
-    type Error  = ValidationError;
+    type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
         let normalised = value.trim().to_lowercase();

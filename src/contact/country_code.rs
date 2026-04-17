@@ -31,16 +31,15 @@ pub type CountryCodeOutput = String;
 pub struct CountryCode(String);
 
 impl ValueObject for CountryCode {
-    type Input  = CountryCodeInput;
+    type Input = CountryCodeInput;
     type Output = CountryCodeOutput;
-    type Error  = ValidationError;
+    type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
         let normalised = value.trim().to_uppercase();
 
         // ISO 3166-1 alpha-2 is exactly 2 ASCII letters, nothing else.
-        let valid = normalised.len() == 2
-            && normalised.chars().all(|c| c.is_ascii_alphabetic());
+        let valid = normalised.len() == 2 && normalised.chars().all(|c| c.is_ascii_alphabetic());
 
         if !valid {
             return Err(ValidationError::invalid("CountryCode", &normalised));
