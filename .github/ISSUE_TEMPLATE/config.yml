@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/codegress-com/arvo/security/advisories/new
+    about: Please report security issues through GitHub private advisories, not public issues.
+  - name: Question / discussion
+    url: https://github.com/codegress-com/arvo/discussions
+    about: For usage questions use GitHub Discussions, not issues.

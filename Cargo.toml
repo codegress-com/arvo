@@ -2,13 +2,13 @@
 name = "arvo"
 version = "0.1.0"
 license = "MIT"
-description = ""
+description = "Validated, immutable value objects for common domain types (email, money, identifiers, …)"
 authors = ["Codegress <hello@codegress.com>"]
 repository = "https://github.com/codegress-com/arvo"
-documentation = "https://github.com/codegress-com/arvo#readme"
+documentation = "https://docs.rs/arvo"
 homepage = "https://github.com/codegress-com/arvo"
-keywords = ["rust"]
-categories = []
+keywords = ["value-object", "validation", "domain", "ddd", "type-safety"]
+categories = ["data-structures", "value-formatting"]
 readme = "README.md"
 edition = "2024"
 resolver = "3"
