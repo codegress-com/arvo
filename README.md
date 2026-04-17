@@ -38,6 +38,14 @@ let email: EmailAddress = "user@example.com".try_into()?;
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 
+## Documentation
+
+| Document | Description |
+|---|---|
+| [docs/value-objects.md](docs/value-objects.md) | What value objects are, simple vs composite, normalisation |
+| [docs/implementing.md](docs/implementing.md) | How to implement the `ValueObject` trait for custom types |
+| [docs/contact.md](docs/contact.md) | Reference for all `contact` module types |
+
 ---
 
 ## Installation
