@@ -2,6 +2,8 @@
 
 > Legend: ✅ done · 🚧 in progress · ⬜ planned
 
+**Design rule:** arvo only implements a type when it adds validation, normalisation, or domain semantics that the raw type or an existing well-maintained crate does not already provide. For example `uuid::Uuid` and `chrono::DateTime` already validate on construction — wrapping them would add noise, not safety.
+
 ---
 
 ## `contact` feature
@@ -24,10 +26,10 @@
 
 ## `identifiers` feature
 
+*`Uuid` and `Ulid` are intentionally omitted — use the `uuid` and `ulid` crates directly; they validate on construction and expose a richer API than a thin wrapper could.*
+
 | Type | Status | Notes |
 |---|---|---|
-| `Uuid` | ⬜ | RFC 4122, wraps `uuid` crate |
-| `Ulid` | ⬜ | lexicographically sortable, wraps `ulid` crate |
 | `Slug` | ⬜ | lowercase, alphanumeric + hyphens, no leading/trailing hyphens |
 | `Username` | ⬜ | alphanumeric + underscore, 3–32 chars |
 | `Sku` | ⬜ | Stock Keeping Unit, non-empty, normalised to uppercase |
@@ -37,7 +39,6 @@
 | `Isbn10` | ⬜ | ISBN-10 with check digit |
 | `Issn` | ⬜ | ISSN with check digit |
 | `Vin` | ⬜ | Vehicle Identification Number, 17 chars, checksum validated |
-| `CorrelationId` | ⬜ | non-empty string for request tracing; accepts UUID or opaque string |
 
 ---
 
@@ -60,21 +61,16 @@
 
 ## `temporal` feature
 
+*`Date`, `Time`, `DateTime`, and `Duration` are intentionally omitted — `chrono` and the `time` crate provide comprehensive, validated implementations. arvo provides types that add domain-level semantics on top of the raw temporal primitives.*
+
 | Type | Status | Notes |
 |---|---|---|
-| `Date` | ⬜ | calendar date without timezone, wraps `chrono::NaiveDate` |
-| `Time` | ⬜ | time of day without timezone, wraps `chrono::NaiveTime` |
-| `DateTime` | ⬜ | date + time with timezone, wraps `chrono::DateTime<Utc>` |
 | `UnixTimestamp` | ⬜ | non-negative `i64` seconds since epoch |
-| `Duration` | ⬜ | positive duration, wraps `chrono::Duration` |
-| `TimeRange` | ⬜ | composite: start `DateTime` + end `DateTime`; start < end enforced |
-| `BirthDate` | ⬜ | `Date` in the past, not more than 150 years ago |
-| `ExpiryDate` | ⬜ | `Date` strictly in the future |
+| `BirthDate` | ⬜ | date in the past, not more than 150 years ago |
+| `ExpiryDate` | ⬜ | date strictly in the future |
 | `Age` | ⬜ | `u8` in range 0–150 |
-| `Year` | ⬜ | `i32` in reasonable range (1000–9999) |
-| `MonthOfYear` | ⬜ | `u8` in range 1–12 |
-| `DayOfMonth` | ⬜ | `u8` in range 1–31 |
-| `BusinessHours` | ⬜ | composite: weekday + open `Time` + close `Time`; open < close |
+| `TimeRange` | ⬜ | start + end `DateTime`; `start < end` enforced |
+| `BusinessHours` | ⬜ | composite: weekday + open time + close time; open < close |
 
 ---
 
@@ -130,24 +126,22 @@
 
 ## `primitives` feature
 
+*`SemVer`, `FilePath`, and `FileName` are intentionally omitted — the `semver` crate and `std::path` already handle these well. `TrimmedString` is omitted in favour of `NonEmptyString` which is strictly more useful.*
+
 | Type | Status | Notes |
 |---|---|---|
 | `NonEmptyString` | ⬜ | trimmed, at least 1 non-whitespace char |
-| `TrimmedString` | ⬜ | leading/trailing whitespace stripped |
 | `BoundedString` | ⬜ | `BoundedString<const MIN: usize, const MAX: usize>` via const generics |
 | `PositiveInt` | ⬜ | `i64 > 0` |
 | `NonNegativeInt` | ⬜ | `i64 >= 0` |
 | `PositiveDecimal` | ⬜ | `Decimal > 0` |
 | `NonNegativeDecimal` | ⬜ | `Decimal >= 0` |
 | `Probability` | ⬜ | `f64` in range 0.0..=1.0 |
-| `SemVer` | ⬜ | semantic version (major.minor.patch), wraps `semver` crate |
 | `HexColor` | ⬜ | `#RRGGBB` or `#RGB`, normalised to uppercase |
 | `RgbColor` | ⬜ | composite: r, g, b each `u8` |
 | `Locale` | ⬜ | BCP 47 language tag (e.g. `en-US`, `cs-CZ`) |
 | `LanguageCode` | ⬜ | ISO 639-1 alpha-2 (e.g. `en`, `cs`) |
 | `Base64String` | ⬜ | valid base64-encoded string |
-| `FilePath` | ⬜ | non-empty, OS-agnostic path validation |
-| `FileName` | ⬜ | no path separators, non-empty |
 
 ---
 
@@ -156,11 +150,11 @@
 | Feature | Total | Done | Remaining |
 |---|---|---|---|
 | `contact` | 11 | 1 | 10 |
-| `identifiers` | 12 | 0 | 12 |
+| `identifiers` | 9 | 0 | 9 |
 | `finance` | 10 | 0 | 10 |
-| `temporal` | 13 | 0 | 13 |
+| `temporal` | 6 | 0 | 6 |
 | `geo` | 9 | 0 | 9 |
 | `net` | 10 | 0 | 10 |
 | `measurement` | 10 | 0 | 10 |
-| `primitives` | 16 | 0 | 16 |
-| **Total** | **91** | **1** | **90** |
+| `primitives` | 12 | 0 | 12 |
+| **Total** | **77** | **1** | **76** |

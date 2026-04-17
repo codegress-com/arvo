@@ -151,20 +151,20 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 
 ## Roadmap
 
-91 value object types planned across 8 domain modules.
+77 value object types planned across 8 domain modules. Types are only added when they bring validation, normalisation, or domain semantics that existing crates don't already provide.
 
 | Feature | Highlights | Types | Status |
 |:---|:---|:---:|:---:|
 | `contact` | `EmailAddress`, `PhoneNumber`, `PostalAddress` | 11 | 1 / 11 |
-| `identifiers` | `Uuid`, `Ulid`, `Slug`, `Ean13`, `Isbn13`, `Vin` | 12 | 0 / 12 |
+| `identifiers` | `Slug`, `Ean13`, `Isbn13`, `Vin`, `Sku` | 9 | 0 / 9 |
 | `finance` | `Money`, `Iban`, `Bic`, `VatNumber`, `CreditCardNumber` | 10 | 0 / 10 |
-| `temporal` | `Date`, `DateTime`, `BirthDate`, `TimeRange` | 13 | 0 / 13 |
-| `geo` | `Coordinate`, `BoundingBox`, `TimeZone` | 9 | 0 / 9 |
+| `temporal` | `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | 6 | 0 / 6 |
+| `geo` | `Coordinate`, `BoundingBox`, `TimeZone`, `Angle` | 9 | 0 / 9 |
 | `net` | `Url`, `IpAddress`, `MacAddress`, `ApiKey` | 10 | 0 / 10 |
 | `measurement` | `Length`, `Weight`, `Temperature`, `Speed` | 10 | 0 / 10 |
-| `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 16 | 0 / 16 |
+| `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 12 | 0 / 12 |
 
-→ Full details in [ROADMAP.md](ROADMAP.md)
+→ Full details and design rationale in [ROADMAP.md](ROADMAP.md)
 
 ---
 
