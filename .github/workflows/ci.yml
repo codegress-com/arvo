@@ -83,7 +83,7 @@ jobs:
 
   # ── Minimum Supported Rust Version ────────────────────────────────────────
   msrv:
-    name: MSRV (${{ env.MSRV }})
+    name: MSRV (1.85)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
