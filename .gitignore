@@ -17,6 +17,9 @@
 *.swo
 .DS_Store
 
+# Repo management scripts (keep locally, not in repo)
+setup-github-repo.sh
+
 # Coverage output
 lcov.info
 tarpaulin-report.html

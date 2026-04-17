@@ -1,65 +1,117 @@
+<div align="center">
+
 # arvo
 
-[![Crates.io](https://img.shields.io/crates/v/arvo.svg)](https://crates.io/crates/arvo)
-[![docs.rs](https://img.shields.io/docsrs/arvo)](https://docs.rs/arvo)
-[![CI](https://github.com/codegress-com/arvo/actions/workflows/ci.yml/badge.svg)](https://github.com/codegress-com/arvo/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![MSRV: 1.85](https://img.shields.io/badge/MSRV-1.85-orange.svg)](https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html)
+**Validated, immutable value objects for common domain types**
 
-**arvo** (Finnish: *value*) — validated, immutable value objects for common domain types.
+*arvo* — Finnish for *value*
 
-Each type guarantees: **if it exists, it is valid.** Construction always goes through `::new()` returning `Result`, making invalid states unrepresentable at the type level.
+[![Crates.io version](https://img.shields.io/crates/v/arvo?style=flat-square&logo=rust&color=orange)](https://crates.io/crates/arvo)
+[![Crates.io downloads](https://img.shields.io/crates/d/arvo?style=flat-square&color=blue)](https://crates.io/crates/arvo)
+[![docs.rs](https://img.shields.io/docsrs/arvo?style=flat-square&logo=docs.rs)](https://docs.rs/arvo)
+[![CI](https://img.shields.io/github/actions/workflow/status/codegress-com/arvo/ci.yml?branch=main&style=flat-square&logo=github&label=CI)](https://github.com/codegress-com/arvo/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+[![MSRV: 1.85](https://img.shields.io/badge/MSRV-1.85-purple?style=flat-square&logo=rust)](https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html)
 
-## Features
+</div>
 
-| Feature | Types | Activates |
-|---|---|---|
-| `contact` | `EmailAddress` | `once_cell`, `regex` |
-| `serde` | `Serialize`/`Deserialize` on all types | `serde` |
-| `sql` | sqlx `Type`/`Encode`/`Decode` for Postgres | `sqlx` |
-| `full` | all domain modules | `contact` |
+---
 
-Enable only what you need — zero unused dependencies pulled in.
+Each type in **arvo** carries a single guarantee: **if it exists, it is valid.**
 
-## Quick start
+Construction always goes through `::new()` returning `Result` — invalid states become unrepresentable at the type level. No more stringly-typed domain values, no runtime surprises.
+
+```rust,ignore
+// This compiles. This is guaranteed valid. Forever.
+let email: EmailAddress = "user@example.com".try_into()?;
+```
+
+---
+
+## Contents
+
+- [Installation](#installation)
+- [Feature flags](#feature-flags)
+- [Quick start](#quick-start)
+- [The `ValueObject` trait](#the-valueobject-trait)
+- [Error handling](#error-handling)
+- [Serde support](#serde-support)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+
+---
+
+## Installation
 
 ```toml
 [dependencies]
 arvo = { version = "0.1", features = ["contact", "serde"] }
 ```
 
+Enable only the modules you need — unused features add zero dependencies.
+
+---
+
+## Feature flags
+
+| Feature | What you get | Extra deps |
+|:---|:---|:---|
+| `contact` | `EmailAddress` | `once_cell`, `regex` |
+| `serde` | `Serialize` / `Deserialize` on all types | `serde` |
+| `full` | All domain modules | all of the above |
+
+> **Tip:** `serde` and `full` are orthogonal — combine them freely:
+> `features = ["full", "serde"]`
+
+---
+
+## Quick start
+
 ```rust,ignore
 use arvo::prelude::*;
 
-// Construction validates and normalises
+// Validates and normalises on construction
 let email = EmailAddress::new("User@Example.COM".into())?;
-assert_eq!(email.value(), "user@example.com");
+assert_eq!(email.value(), "user@example.com");    // always lowercase
 
-// Try-from for ergonomic use
+// Ergonomic try_into from &str
 let email: EmailAddress = "hello@example.com".try_into()?;
 
-// Display prints the normalised value
-println!("{email}"); // hello@example.com
+// Display shows the normalised value
+println!("{email}");  // hello@example.com
+
+// Invalid input → descriptive error, not a panic
+let err = EmailAddress::new("not-an-email".into()).unwrap_err();
+println!("{err}");    // 'not-an-email' is not a valid EmailAddress
 ```
+
+---
 
 ## The `ValueObject` trait
 
-All types implement the same core trait:
+Every type in arvo implements the same core interface:
 
 ```rust,ignore
 pub trait ValueObject: Sized + Clone + PartialEq {
     type Raw;
     type Error: std::error::Error;
 
+    /// Only way to construct — validates the raw value.
     fn new(value: Self::Raw) -> Result<Self, Self::Error>;
+
+    /// Borrow the validated inner value.
     fn value(&self) -> &Self::Raw;
+
+    /// Consume and unwrap.
     fn into_inner(self) -> Self::Raw;
 }
 ```
 
-Implement it for your own domain types or use the provided implementations as a reference.
+You can implement it for your own domain types using the provided implementations as a reference.
 
-## Errors
+---
+
+## Error handling
 
 All validation errors are variants of `ValidationError`:
 
@@ -67,34 +119,63 @@ All validation errors are variants of `ValidationError`:
 use arvo::errors::ValidationError;
 
 match EmailAddress::new("bad".into()) {
-    Err(ValidationError::InvalidFormat { type_name, value }) => { /* … */ }
-    Err(ValidationError::Empty { type_name }) => { /* … */ }
-    _ => {}
+    Ok(email)  => println!("valid: {email}"),
+    Err(ValidationError::InvalidFormat { type_name, value }) => {
+        eprintln!("'{value}' is not a valid {type_name}");
+    }
+    Err(ValidationError::Empty { type_name }) => {
+        eprintln!("{type_name} must not be empty");
+    }
+    Err(e) => eprintln!("{e}"),
 }
 ```
 
-## Serde
+---
 
-Enable the `serde` feature — all types serialize as their raw value (transparent newtype):
+## Serde support
+
+Enable the `serde` feature. All types serialize as their raw primitive (transparent newtype):
 
 ```rust,ignore
-let json = serde_json::to_string(&email)?;           // "user@example.com"
-let email: EmailAddress = serde_json::from_str(r#""user@example.com""#)?;
+use arvo::contact::EmailAddress;
+
+let email = EmailAddress::new("user@example.com".into())?;
+
+let json = serde_json::to_string(&email)?;
+// → "\"user@example.com\""
+
+// Deserialization validates — invalid JSON values are rejected at parse time
+let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 ```
 
-Deserialization runs through `::new()`, so invalid values are rejected at parse time.
+---
 
 ## Roadmap
 
-- [ ] `finance` — `Money`, `Currency`, `Percentage`
-- [ ] `identifiers` — `Uuid`, `Ulid`
-- [ ] `net` — `Url`, `IpAddress`
-- [ ] `temporal` — `DateOfBirth`, `FutureDate`
-- [ ] `geo` — `Coordinates`, `PostalCode`
-- [ ] `primitives` — `NonEmptyString`, `BoundedInt`
+| Module | Types | Status |
+|:---|:---|:---:|
+| `contact` | `EmailAddress` | ✅ |
+| `finance` | `Money`, `Currency`, `Percentage` | planned |
+| `identifiers` | `Uuid`, `Ulid` | planned |
+| `net` | `Url`, `IpAddress` | planned |
+| `temporal` | `DateOfBirth`, `FutureDate` | planned |
+| `geo` | `Coordinates`, `PostalCode` | planned |
+| `primitives` | `NonEmptyString`, `BoundedInt` | planned |
 
-Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+---
 
-## License
+## Contributing
 
-MIT — see [LICENSE](LICENSE).
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
+
+- **Bug?** → [open a bug report](https://github.com/codegress-com/arvo/issues/new?template=bug_report.yml)
+- **Feature idea?** → [open a feature request](https://github.com/codegress-com/arvo/issues/new?template=feature_request.yml)
+- **Security issue?** → see [SECURITY.md](SECURITY.md) — do **not** open a public issue
+
+---
+
+<div align="center">
+
+MIT License — © [Codegress](https://github.com/codegress-com)
+
+</div>
