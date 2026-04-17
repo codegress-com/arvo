@@ -11,8 +11,8 @@
 | Type | Status | Notes |
 |---|---|---|
 | `EmailAddress` | ✅ | normalised to lowercase, regex validated |
-| `PhoneNumber` | ⬜ | E.164, strips spaces/dashes |
-| `CountryCode` | ⬜ | ISO 3166-1 alpha-2, normalised to uppercase |
+| `PhoneNumber` | ✅ | E.164, strips spaces/dashes |
+| `CountryCode` | ✅ | ISO 3166-1 alpha-2, normalised to uppercase |
 | `PostalAddress` | ⬜ | composite: street + city + zip + `CountryCode`; fields validated as non-empty |
 | `Website` | ⬜ | valid URL, https preferred |
 
@@ -134,7 +134,7 @@
 
 | Feature | Total | Done | Remaining |
 |---|---|---|---|
-| `contact` | 5 | 1 | 4 |
+| `contact` | 5 | 3 | 2 |
 | `identifiers` | 7 | 0 | 7 |
 | `finance` | 9 | 0 | 9 |
 | `temporal` | 5 | 0 | 5 |
