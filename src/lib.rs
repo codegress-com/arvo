@@ -15,16 +15,26 @@
 //! arvo = { version = "0.1", features = ["contact", "finance"] }
 //! ```
 //!
-//! Available features: `contact`, `geo`, `finance`, `temporal`,
-//! `identifiers`, `net`, `measurement`, `primitives`, `serde`, `sqlx`, `full`.
+//! Available features: `contact`, `serde`, `full`.
+//! See [ROADMAP.md](https://github.com/codegress-com/arvo/blob/main/ROADMAP.md) for planned modules.
 //!
 //! ## Quick start
 //!
 //! ```rust,ignore
+//! use arvo::contact::{CountryCode, PhoneNumber, PhoneNumberInput};
 //! use arvo::prelude::*;
 //!
-//! let email = EmailAddress::new("user@example.com".into())?;
-//! println!("{}", email); // user@example.com
+//! // Simple value object — validated and normalised on construction
+//! let email = EmailAddress::new("User@Example.COM".into())?;
+//! assert_eq!(email.value(), "user@example.com");
+//! assert_eq!(email.domain(), "example.com");
+//!
+//! // Composite value object — structured input, canonical output
+//! let phone = PhoneNumber::new(PhoneNumberInput {
+//!     country_code: CountryCode::new("CZ".into())?,
+//!     number: "123456789".into(),
+//! })?;
+//! assert_eq!(phone.value(), "+420123456789");
 //! # Ok::<(), arvo::errors::ValidationError>(())
 //! ```
 

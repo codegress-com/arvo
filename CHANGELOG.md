@@ -9,6 +9,17 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `CountryCode` value object — ISO 3166-1 alpha-2, normalised to uppercase
+- `PhoneNumber` composite value object — `CountryCode` + local number → canonical E.164; ITU calling codes for all 249 ISO 3166-1 countries
+- `EmailAddress::domain()` and `EmailAddress::local_part()` accessors
+
+### Changed
+
+- `ValueObject` trait: `Raw` split into `Input` (accepted by `new()`) and `Output` (returned by `value()`), enabling composite types with structured input and canonical string output
+- `EmailAddress` and `CountryCode` updated to use `EmailAddressInput`/`Output` and `CountryCodeInput`/`Output` type aliases
+
 ---
 
 ## [0.1.0] — 2026-04-17

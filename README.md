@@ -38,6 +38,14 @@ let email: EmailAddress = "user@example.com".try_into()?;
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 
+## Documentation
+
+| Document | Description |
+|---|---|
+| [docs/value-objects.md](docs/value-objects.md) | What value objects are, simple vs composite, normalisation |
+| [docs/implementing.md](docs/implementing.md) | How to implement the `ValueObject` trait for custom types |
+| [docs/contact.md](docs/contact.md) | Reference for all `contact` module types |
+
 ---
 
 ## Installation
@@ -55,7 +63,7 @@ Enable only the modules you need — unused features add zero dependencies.
 
 | Feature | What you get | Extra deps |
 |:---|:---|:---|
-| `contact` | `EmailAddress` | `once_cell`, `regex` |
+| `contact` | `EmailAddress`, `CountryCode`, `PhoneNumber` | `once_cell`, `regex` |
 | `serde` | `Serialize` / `Deserialize` on all types | `serde` |
 | `full` | All domain modules | all of the above |
 
@@ -67,21 +75,32 @@ Enable only the modules you need — unused features add zero dependencies.
 ## Quick start
 
 ```rust,ignore
+use arvo::contact::{CountryCode, PhoneNumber, PhoneNumberInput};
 use arvo::prelude::*;
 
-// Validates and normalises on construction
+// Simple value object — validated and normalised on construction
 let email = EmailAddress::new("User@Example.COM".into())?;
-assert_eq!(email.value(), "user@example.com");    // always lowercase
+assert_eq!(email.value(), "user@example.com");  // always lowercase
+assert_eq!(email.domain(), "example.com");
 
 // Ergonomic try_into from &str
 let email: EmailAddress = "hello@example.com".try_into()?;
 
-// Display shows the normalised value
-println!("{email}");  // hello@example.com
+// Country code — normalised to uppercase, ISO 3166-1 alpha-2
+let country = CountryCode::new("cz".into())?;
+assert_eq!(country.value(), "CZ");
+
+// Composite value object — structured input, canonical E.164 output
+let phone = PhoneNumber::new(PhoneNumberInput {
+    country_code: CountryCode::new("CZ".into())?,
+    number: "123 456 789".into(),   // formatting stripped automatically
+})?;
+assert_eq!(phone.value(), "+420123456789");
+assert_eq!(phone.calling_code(), "+420");
 
 // Invalid input → descriptive error, not a panic
 let err = EmailAddress::new("not-an-email".into()).unwrap_err();
-println!("{err}");    // 'not-an-email' is not a valid EmailAddress
+println!("{err}");  // 'not-an-email' is not a valid EmailAddress
 ```
 
 ---
@@ -92,18 +111,39 @@ Every type in arvo implements the same core interface:
 
 ```rust,ignore
 pub trait ValueObject: Sized + Clone + PartialEq {
-    type Raw;
+    /// What `new()` accepts — raw primitive for simple types,
+    /// a dedicated input struct for composites.
+    type Input;
+
+    /// What `value()` returns — same as `Input` for simple types,
+    /// canonical representation (e.g. E.164 string) for composites.
+    type Output: ?Sized;
+
     type Error: std::error::Error;
 
-    /// Only way to construct — validates the raw value.
-    fn new(value: Self::Raw) -> Result<Self, Self::Error>;
+    /// Only way to construct — validates and normalises the input.
+    fn new(value: Self::Input) -> Result<Self, Self::Error>;
 
-    /// Borrow the validated inner value.
-    fn value(&self) -> &Self::Raw;
+    /// Returns the validated output value.
+    fn value(&self) -> &Self::Output;
 
-    /// Consume and unwrap.
-    fn into_inner(self) -> Self::Raw;
+    /// Consumes and returns the original input.
+    fn into_inner(self) -> Self::Input;
 }
+```
+
+**Simple type** — `Input` and `Output` are the same (`String`):
+```rust,ignore
+let email = EmailAddress::new("user@example.com".into())?;
+email.value()       // &String → "user@example.com"
+email.into_inner()  // String  → "user@example.com"
+```
+
+**Composite type** — `Input` is a struct, `Output` is canonical string:
+```rust,ignore
+let phone = PhoneNumber::new(PhoneNumberInput { country_code, number })?;
+phone.value()       // &String → "+420123456789"  (E.164)
+phone.into_inner()  // PhoneNumberInput { country_code, number }
 ```
 
 You can implement it for your own domain types using the provided implementations as a reference.
@@ -155,7 +195,7 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 
 | Feature | Highlights | Types | Status |
 |:---|:---|:---:|:---:|
-| `contact` | `EmailAddress`, `PhoneNumber`, `CountryCode`, `PostalAddress` | 5 | 1 / 5 |
+| `contact` | `EmailAddress`, `PhoneNumber`, `CountryCode`, `PostalAddress` | 5 | 3 / 5 |
 | `identifiers` | `Slug`, `Ean13`, `Isbn13`, `Vin` | 7 | 0 / 7 |
 | `finance` | `Money`, `Iban`, `Bic`, `VatNumber`, `CreditCardNumber` | 9 | 0 / 9 |
 | `temporal` | `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | 5 | 0 / 5 |
