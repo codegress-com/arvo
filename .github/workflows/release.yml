@@ -62,9 +62,13 @@ jobs:
         run: |
           TAG="v${{ inputs.version }}"
           git add Cargo.toml Cargo.lock
-          git commit -m "chore: release $TAG"
+          if git diff --cached --quiet; then
+            echo "Version already set to ${{ inputs.version }}, skipping commit."
+          else
+            git commit -m "chore: release $TAG"
+            git push origin main
+          fi
           git tag "$TAG"
-          git push origin main
           git push origin "$TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
