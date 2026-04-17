@@ -6,14 +6,14 @@
 ///
 /// # Type parameters
 ///
-/// - `Input`  — the type accepted by [`new`](ValueObject::new).
-///              For simple types this is the raw primitive (e.g. `String`).
-///              For composite types this is a dedicated input struct.
+/// - `Input` — the type accepted by [`new`](ValueObject::new).
+///   For simple types this is the raw primitive (e.g. `String`).
+///   For composite types this is a dedicated input struct.
 /// - `Output` — the type returned by [`value`](ValueObject::value).
-///              For simple types `Input` and `Output` are the same.
-///              For composite types `Output` is the canonical representation
-///              (e.g. an E.164 string for a phone number).
-/// - `Error`  — the error returned when validation fails.
+///   For simple types `Input` and `Output` are the same.
+///   For composite types `Output` is the canonical representation
+///   (e.g. an E.164 string for a phone number).
+/// - `Error` — the error returned when validation fails.
 ///
 /// # Simple type example
 ///
