@@ -151,15 +151,20 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 
 ## Roadmap
 
-| Module | Types | Status |
-|:---|:---|:---:|
-| `contact` | `EmailAddress` | ✅ |
-| `finance` | `Money`, `Currency`, `Percentage` | planned |
-| `identifiers` | `Uuid`, `Ulid` | planned |
-| `net` | `Url`, `IpAddress` | planned |
-| `temporal` | `DateOfBirth`, `FutureDate` | planned |
-| `geo` | `Coordinates`, `PostalCode` | planned |
-| `primitives` | `NonEmptyString`, `BoundedInt` | planned |
+91 value object types planned across 8 domain modules.
+
+| Feature | Highlights | Types | Status |
+|:---|:---|:---:|:---:|
+| `contact` | `EmailAddress`, `PhoneNumber`, `PostalAddress` | 11 | 1 / 11 |
+| `identifiers` | `Uuid`, `Ulid`, `Slug`, `Ean13`, `Isbn13`, `Vin` | 12 | 0 / 12 |
+| `finance` | `Money`, `Iban`, `Bic`, `VatNumber`, `CreditCardNumber` | 10 | 0 / 10 |
+| `temporal` | `Date`, `DateTime`, `BirthDate`, `TimeRange` | 13 | 0 / 13 |
+| `geo` | `Coordinate`, `BoundingBox`, `TimeZone` | 9 | 0 / 9 |
+| `net` | `Url`, `IpAddress`, `MacAddress`, `ApiKey` | 10 | 0 / 10 |
+| `measurement` | `Length`, `Weight`, `Temperature`, `Speed` | 10 | 0 / 10 |
+| `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 16 | 0 / 16 |
+
+→ Full details in [ROADMAP.md](ROADMAP.md)
 
 ---
 
