@@ -35,8 +35,7 @@ gh repo edit "$REPO" \
   --homepage "https://docs.rs/${REPO##*/}" \
   --enable-issues \
   --enable-discussions \
-  --delete-branch-on-merge \
-  --no-enable-wiki
+  --delete-branch-on-merge
 
 echo "  repo metadata set"
 
@@ -87,7 +86,7 @@ echo "  labels created"
 
 # ── 4. Branch protection ───────────────────────────────────────────────────────
 # Requires the repo to have at least one commit on main.
-gh api "repos/$REPO/branches/main/protection" \
+if gh api "repos/$REPO/branches/main/protection" \
   --method PUT \
   --header "Accept: application/vnd.github+json" \
   --field "required_status_checks[strict]=true" \
@@ -95,20 +94,25 @@ gh api "repos/$REPO/branches/main/protection" \
   --field "enforce_admins=false" \
   --field "required_pull_request_reviews[required_approving_review_count]=1" \
   --field "required_pull_request_reviews[dismiss_stale_reviews]=true" \
-  --field "required_pull_request_reviews[require_code_owner_reviews]=false" \
+  --field "required_pull_request_reviews[require_code_owner_reviews]=true" \
   --field "restrictions=null" \
   --field "allow_force_pushes=false" \
   --field "allow_deletions=false" \
   --field "required_linear_history=false" \
-  --silent
-
-echo "  branch protection set on main"
+  --silent 2>/dev/null; then
+  echo "  branch protection set on main"
+else
+  echo "  branch protection skipped (requires public repo or GitHub Pro)"
+fi
 
 # ── 5. crates-io environment + secret ─────────────────────────────────────────
 gh api "repos/$REPO/environments/crates-io" \
   --method PUT \
-  --field "wait_timer=0" \
-  --silent
+  --silent 2>/dev/null || \
+gh api "repos/$REPO/environments/crates-io" \
+  --method PUT \
+  --input - <<< '{}' \
+  --silent 2>/dev/null || true
 
 echo "  environment 'crates-io' created"
 
