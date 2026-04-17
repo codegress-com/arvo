@@ -20,6 +20,9 @@
 # Repo management scripts (keep locally, not in repo)
 scripts/
 
+# Internal docs (local only)
+docs/internal/
+
 # Coverage output
 lcov.info
 tarpaulin-report.html

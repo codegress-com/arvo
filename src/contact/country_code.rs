@@ -1,5 +1,11 @@
 use crate::errors::ValidationError;
-use crate::prelude::ValueObject;
+use crate::traits::ValueObject;
+
+/// Input type for [`CountryCode`] — a raw string before validation.
+pub type CountryCodeInput = String;
+
+/// Output type for [`CountryCode`] — a normalised uppercase string.
+pub type CountryCodeOutput = String;
 
 /// A validated ISO 3166-1 alpha-2 country code.
 ///
@@ -19,39 +25,40 @@ use crate::prelude::ValueObject;
 /// assert!(CountryCode::new("USA".into()).is_err()); // 3 letters — invalid
 /// assert!(CountryCode::new("C1".into()).is_err());  // digit — invalid
 /// ```
-///
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct CountryCode(String);
 
 impl ValueObject for CountryCode {
-    type Raw = String;
-    type Error = ValidationError;
+    type Input  = CountryCodeInput;
+    type Output = CountryCodeOutput;
+    type Error  = ValidationError;
 
-    fn new(value: Self::Raw) -> Result<Self, Self::Error> {
-        let normalized = value.trim().to_uppercase();
+    fn new(value: Self::Input) -> Result<Self, Self::Error> {
+        let normalised = value.trim().to_uppercase();
 
         // ISO 3166-1 alpha-2 is exactly 2 ASCII letters, nothing else.
-        let valid = normalized.len() == 2 && normalized.chars().all(|c| c.is_ascii_alphabetic());
+        let valid = normalised.len() == 2
+            && normalised.chars().all(|c| c.is_ascii_alphabetic());
 
         if !valid {
-            return Err(ValidationError::invalid("CountryCode", &normalized));
+            return Err(ValidationError::invalid("CountryCode", &normalised));
         }
 
-        Ok(CountryCode(normalized))
+        Ok(Self(normalised))
     }
 
-    fn value(&self) -> &Self::Raw {
+    fn value(&self) -> &Self::Output {
         &self.0
     }
 
-    fn into_inner(self) -> Self::Raw {
+    fn into_inner(self) -> Self::Input {
         self.0
     }
 }
 
-/// Allows ergonomic construction from a string literal: `"US".try_into()`
+/// Allows ergonomic construction from a string literal: `"CZ".try_into()`
 impl TryFrom<&str> for CountryCode {
     type Error = ValidationError;
 
