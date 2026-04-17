@@ -10,7 +10,7 @@ use regex::Regex;
 static EMAIL_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$").unwrap());
 
-/// A validated, normalised email address.
+/// A validated, normalized email address.
 ///
 /// On construction the value is trimmed and lowercased, so
 /// `"User@Example.COM"` and `"user@example.com"` produce equal instances.
@@ -36,17 +36,17 @@ impl ValueObject for EmailAddress {
     type Error = ValidationError;
 
     fn new(value: Self::Raw) -> Result<Self, Self::Error> {
-        let trimmed = value.trim().to_lowercase();
+        let normalized = value.trim().to_lowercase();
 
-        if trimmed.is_empty() {
+        if normalized.is_empty() {
             return Err(ValidationError::empty("EmailAddress"));
         }
 
-        if !EMAIL_REGEX.is_match(&trimmed) {
-            return Err(ValidationError::invalid("EmailAddress", &trimmed));
+        if !EMAIL_REGEX.is_match(&normalized) {
+            return Err(ValidationError::invalid("EmailAddress", &normalized));
         }
 
-        Ok(Self(trimmed))
+        Ok(Self(normalized))
     }
 
     fn value(&self) -> &Self::Raw {
