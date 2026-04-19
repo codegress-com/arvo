@@ -1,6 +1,6 @@
 [package]
 name = "arvo"
-version = "0.1.1"
+version = "0.2.0"
 license = "MIT"
 description = "Validated, immutable value objects for common domain types (email, money, identifiers, …)"
 authors = ["Codegress <hello@codegress.com>"]

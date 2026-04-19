@@ -52,7 +52,7 @@ let email: EmailAddress = "user@example.com".try_into()?;
 
 ```toml
 [dependencies]
-arvo = { version = "0.1", features = ["contact", "serde"] }
+arvo = { version = "0.2", features = ["contact", "serde"] }
 ```
 
 Enable only the modules you need — unused features add zero dependencies.
