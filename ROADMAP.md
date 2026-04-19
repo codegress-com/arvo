@@ -13,7 +13,7 @@
 | `EmailAddress` | ✅ | normalised to lowercase, regex validated |
 | `PhoneNumber` | ✅ | E.164, strips spaces/dashes |
 | `CountryCode` | ✅ | ISO 3166-1 alpha-2, normalised to uppercase |
-| `PostalAddress` | ⬜ | composite: street + city + zip + `CountryCode`; fields validated as non-empty |
+| `PostalAddress` | ✅ | composite: street + city + zip + `CountryCode`; fields validated as non-empty |
 | `Website` | ✅ | valid URL, http/https only, normalised |
 
 ---
@@ -134,7 +134,7 @@
 
 | Feature | Total | Done | Remaining |
 |---|---|---|---|
-| `contact` | 5 | 4 | 1 |
+| `contact` | 5 | 5 | 0 |
 | `identifiers` | 7 | 0 | 7 |
 | `finance` | 9 | 0 | 9 |
 | `temporal` | 5 | 0 | 5 |
@@ -142,4 +142,4 @@
 | `net` | 10 | 0 | 10 |
 | `measurement` | 10 | 0 | 10 |
 | `primitives` | 10 | 0 | 10 |
-| **Total** | **62** | **4** | **58** |
+| **Total** | **62** | **5** | **57** |
