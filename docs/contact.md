@@ -172,10 +172,58 @@ let site: Website = "https://example.com".try_into()?;
 
 ---
 
-## Planned
+## PostalAddress
 
-| Type | Notes |
-|---|---|
-| `PostalAddress` | composite: street + city + zip + `CountryCode` |
+A validated composite postal address. All text fields are trimmed; empty or whitespace-only values are rejected. The `country` field requires a valid [`CountryCode`].
 
-See [ROADMAP.md](../ROADMAP.md) for full details.
+**Normalisation:** `street`, `city`, and `zip` are trimmed.  
+**Validation:** all fields must be non-empty after trimming.
+
+```rust,ignore
+use arvo::contact::{CountryCode, PostalAddress, PostalAddressInput};
+use arvo::traits::ValueObject;
+
+let addr = PostalAddress::new(PostalAddressInput {
+    street:  "Václavské náměstí 1".into(),
+    city:    "Prague".into(),
+    zip:     "110 00".into(),
+    country: CountryCode::new("CZ".into())?,
+})?;
+
+assert_eq!(addr.street(), "Václavské náměstí 1");
+assert_eq!(addr.zip(), "110 00");
+assert_eq!(addr.country().value(), "CZ");
+
+// value() / Display — multi-line canonical form
+assert_eq!(addr.value(), "Václavské náměstí 1\n110 00 Prague\nCZ");
+```
+
+### Input struct
+
+```rust,ignore
+pub struct PostalAddressInput {
+    pub street:  String,
+    pub city:    String,
+    pub zip:     String,
+    pub country: CountryCode,
+}
+```
+
+### Accessors
+
+| Method | Returns | Example |
+|---|---|---|
+| `value()` | `&String` | `"Main St 1\n10115 Berlin\nDE"` |
+| `street()` | `&str` | `"Main St 1"` |
+| `city()` | `&str` | `"Berlin"` |
+| `zip()` | `&str` | `"10115"` |
+| `country()` | `&CountryCode` | `CountryCode("DE")` |
+| `into_inner()` | `PostalAddressInput` | original input fields |
+
+### Errors
+
+| Field | Input | Error |
+|---|---|---|
+| `street` | `""` or whitespace | `ValidationError::Empty` |
+| `city` | `""` or whitespace | `ValidationError::Empty` |
+| `zip` | `""` or whitespace | `ValidationError::Empty` |
