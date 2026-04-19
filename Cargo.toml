@@ -18,7 +18,7 @@ rust-version = "1.85"
 default = []
 
 # Domain modules — opt-in so you only pay for what you use
-contact = ["dep:once_cell", "dep:regex"]
+contact = ["dep:once_cell", "dep:regex", "dep:url"]
 
 # Cross-cutting concerns can be combined with any module
 serde = ["dep:serde"]
@@ -37,7 +37,7 @@ rust_decimal = { version = "1", optional = true }
 chrono = { version = "0.4", optional = true, features = ["serde"] }
 uuid = { version = "1", optional = true, features = ["v4"] }
 ulid = { version = "1", optional = true }
-url = { version = "2", optional = true }
+url = { version = "~2.4", optional = true }
 serde = { version = "1", optional = true, features = ["derive"] }
 sqlx = { version = "0.8", optional = true, features = ["postgres"] }
 
