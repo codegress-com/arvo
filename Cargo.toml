@@ -18,7 +18,7 @@ rust-version = "1.85"
 default = []
 
 # Domain modules — opt-in so you only pay for what you use
-contact = ["dep:once_cell", "dep:regex"]
+contact = ["dep:once_cell", "dep:regex", "dep:url"]
 
 # Cross-cutting concerns can be combined with any module
 serde = ["dep:serde"]
