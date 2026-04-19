@@ -63,7 +63,7 @@ Enable only the modules you need — unused features add zero dependencies.
 
 | Feature | What you get | Extra deps |
 |:---|:---|:---|
-| `contact` | `EmailAddress`, `CountryCode`, `PhoneNumber` | `once_cell`, `regex` |
+| `contact` | `EmailAddress`, `CountryCode`, `PhoneNumber`, `Website` | `once_cell`, `regex`, `url` |
 | `serde` | `Serialize` / `Deserialize` on all types | `serde` |
 | `full` | All domain modules | all of the above |
 
@@ -195,7 +195,7 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 
 | Feature | Highlights | Types | Status |
 |:---|:---|:---:|:---:|
-| `contact` | `EmailAddress`, `PhoneNumber`, `CountryCode`, `PostalAddress` | 5 | 3 / 5 |
+| `contact` | `EmailAddress`, `PhoneNumber`, `CountryCode`, `Website` | 5 | 4 / 5 |
 | `identifiers` | `Slug`, `Ean13`, `Isbn13`, `Vin` | 7 | 0 / 7 |
 | `finance` | `Money`, `Iban`, `Bic`, `VatNumber`, `CreditCardNumber` | 9 | 0 / 9 |
 | `temporal` | `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | 5 | 0 / 5 |
