@@ -133,11 +133,49 @@ pub struct PhoneNumberInput {
 
 ---
 
+## Website
+
+A validated website URL. Accepts `http` and `https` schemes only. Scheme and host are normalised to lowercase on construction.
+
+**Normalisation:** scheme and host lowercased.  
+**Validation:** must be a valid URL with `http` or `https` scheme and a host.
+
+```rust,ignore
+use arvo::contact::Website;
+use arvo::traits::ValueObject;
+
+let site = Website::new("https://EXAMPLE.COM/path".into())?;
+assert_eq!(site.value(), "https://example.com/path");
+assert!(site.is_https());
+assert_eq!(site.host(), "example.com");
+
+// try_into from &str
+let site: Website = "https://example.com".try_into()?;
+```
+
+### Accessors
+
+| Method | Returns | Example |
+|---|---|---|
+| `value()` | `&String` | `"https://example.com/"` |
+| `is_https()` | `bool` | `true` |
+| `host()` | `&str` | `"example.com"` |
+| `into_inner()` | `String` | `"https://example.com/"` |
+
+### Errors
+
+| Input | Error |
+|---|---|
+| `""` | `ValidationError::Empty` |
+| `"not-a-url"` | `ValidationError::InvalidFormat` |
+| `"ftp://example.com"` | `ValidationError::InvalidFormat` (scheme not allowed) |
+
+---
+
 ## Planned
 
 | Type | Notes |
 |---|---|
 | `PostalAddress` | composite: street + city + zip + `CountryCode` |
-| `Website` | valid URL, https preferred |
 
 See [ROADMAP.md](../ROADMAP.md) for full details.
