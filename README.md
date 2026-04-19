@@ -195,7 +195,7 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 
 | Feature | Highlights | Types | Status |
 |:---|:---|:---:|:---:|
-| `contact` | `EmailAddress`, `PhoneNumber`, `CountryCode`, `Website` | 5 | 4 / 5 |
+| `contact` | `EmailAddress`, `PhoneNumber`, `CountryCode`, `PostalAddress`, `Website` | 5 | 5 / 5 ✅ |
 | `identifiers` | `Slug`, `Ean13`, `Isbn13`, `Vin` | 7 | 0 / 7 |
 | `finance` | `Money`, `Iban`, `Bic`, `VatNumber`, `CreditCardNumber` | 9 | 0 / 9 |
 | `temporal` | `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | 5 | 0 / 5 |

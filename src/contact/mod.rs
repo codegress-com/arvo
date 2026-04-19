@@ -2,10 +2,13 @@
 mod country_code;
 mod email_address;
 mod phone_number;
+mod postal_address;
 mod website;
 
 pub use country_code::CountryCode;
 pub use email_address::EmailAddress;
 pub use phone_number::PhoneNumber;
+pub use postal_address::PostalAddress;
+pub use postal_address::PostalAddressInput;
 pub use website::Website;
 pub use website::WebsiteInput;
