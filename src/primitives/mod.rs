@@ -1,23 +1,23 @@
-mod base64string;
-mod boundedstring;
-mod hexcolor;
+mod base64_string;
+mod bounded_string;
+mod hex_color;
 mod locale;
-mod nonemptystring;
-mod nonnegativedecimal;
-mod nonnegativeint;
-mod positivedecimal;
-mod positiveint;
+mod non_negative_decimal;
+mod non_negative_int;
+mod non_empty_string;
+mod positive_decimal;
+mod positive_int;
 mod probability;
 
-pub use base64string::{Base64String, Base64StringInput, Base64StringOutput};
-pub use boundedstring::BoundedString;
-pub use hexcolor::{HexColor, HexColorInput, HexColorOutput};
+pub use base64_string::{Base64String, Base64StringInput, Base64StringOutput};
+pub use bounded_string::BoundedString;
+pub use hex_color::{HexColor, HexColorInput, HexColorOutput};
 pub use locale::{Locale, LocaleInput, LocaleOutput};
-pub use nonemptystring::{NonEmptyString, NonEmptyStringInput, NonEmptyStringOutput};
-pub use nonnegativedecimal::{
+pub use non_negative_decimal::{
     NonNegativeDecimal, NonNegativeDecimalInput, NonNegativeDecimalOutput,
 };
-pub use nonnegativeint::{NonNegativeInt, NonNegativeIntInput, NonNegativeIntOutput};
-pub use positivedecimal::{PositiveDecimal, PositiveDecimalInput, PositiveDecimalOutput};
-pub use positiveint::{PositiveInt, PositiveIntInput, PositiveIntOutput};
+pub use non_negative_int::{NonNegativeInt, NonNegativeIntInput, NonNegativeIntOutput};
+pub use non_empty_string::{NonEmptyString, NonEmptyStringInput, NonEmptyStringOutput};
+pub use positive_decimal::{PositiveDecimal, PositiveDecimalInput, PositiveDecimalOutput};
+pub use positive_int::{PositiveInt, PositiveIntInput, PositiveIntOutput};
 pub use probability::{Probability, ProbabilityInput, ProbabilityOutput};
