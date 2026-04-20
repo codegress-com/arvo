@@ -57,4 +57,10 @@ pub mod prelude {
 
     #[cfg(feature = "contact")]
     pub use crate::contact::{CountryCode, EmailAddress};
+
+    #[cfg(feature = "primitives")]
+    pub use crate::primitives::{
+        Base64String, BoundedString, HexColor, Locale, NonEmptyString, NonNegativeDecimal,
+        NonNegativeInt, PositiveDecimal, PositiveInt, Probability,
+    };
 }
