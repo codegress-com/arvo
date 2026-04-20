@@ -117,16 +117,16 @@
 
 | Type | Status | Notes |
 |---|---|---|
-| `NonEmptyString` | ⬜ | trimmed, at least 1 non-whitespace char |
-| `BoundedString` | ⬜ | `BoundedString<const MIN: usize, const MAX: usize>` via const generics |
-| `PositiveInt` | ⬜ | `i64 > 0` |
-| `NonNegativeInt` | ⬜ | `i64 >= 0` |
-| `PositiveDecimal` | ⬜ | `Decimal > 0` |
-| `NonNegativeDecimal` | ⬜ | `Decimal >= 0` |
-| `Probability` | ⬜ | `f64` in range 0.0..=1.0 |
-| `HexColor` | ⬜ | `#RRGGBB` or `#RGB`, normalised to uppercase |
-| `Locale` | ⬜ | BCP 47 language tag (e.g. `en-US`, `cs-CZ`) |
-| `Base64String` | ⬜ | valid base64-encoded string |
+| `NonEmptyString` | ✅ | trimmed, at least 1 non-whitespace char |
+| `BoundedString` | ✅ | `BoundedString<const MIN: usize, const MAX: usize>` via const generics |
+| `PositiveInt` | ✅ | `i64 > 0` |
+| `NonNegativeInt` | ✅ | `i64 >= 0` |
+| `PositiveDecimal` | ✅ | `Decimal > 0` |
+| `NonNegativeDecimal` | ✅ | `Decimal >= 0` |
+| `Probability` | ✅ | `f64` in range 0.0..=1.0 |
+| `HexColor` | ✅ | `#RRGGBB` or `#RGB`, normalised to uppercase |
+| `Locale` | ✅ | BCP 47 language tag (e.g. `en-US`, `cs-CZ`) |
+| `Base64String` | ✅ | valid base64-encoded string |
 
 ---
 
@@ -141,5 +141,5 @@
 | `geo` | 6 | 0 | 6 |
 | `net` | 10 | 0 | 10 |
 | `measurement` | 10 | 0 | 10 |
-| `primitives` | 10 | 0 | 10 |
-| **Total** | **62** | **5** | **57** |
+| `primitives` | 10 | 10 | 0 |
+| **Total** | **62** | **15** | **47** |
