@@ -44,6 +44,9 @@ pub mod traits;
 #[cfg(feature = "contact")]
 pub mod contact;
 
+#[cfg(feature = "identifiers")]
+pub mod identifiers;
+
 #[cfg(feature = "primitives")]
 pub mod primitives;
 
@@ -57,6 +60,9 @@ pub mod prelude {
 
     #[cfg(feature = "contact")]
     pub use crate::contact::{CountryCode, EmailAddress};
+
+    #[cfg(feature = "identifiers")]
+    pub use crate::identifiers::{Ean8, Ean13, Isbn10, Isbn13, Issn, Slug, Vin};
 
     #[cfg(feature = "primitives")]
     pub use crate::primitives::{
