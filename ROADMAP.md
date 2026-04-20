@@ -24,13 +24,13 @@
 
 | Type | Status | Notes |
 |---|---|---|
-| `Slug` | ⬜ | lowercase, alphanumeric + hyphens, no leading/trailing hyphens |
-| `Ean13` | ⬜ | EAN-13 barcode with checksum validation |
-| `Ean8` | ⬜ | EAN-8 barcode with checksum validation |
-| `Isbn13` | ⬜ | ISBN-13 with check digit |
-| `Isbn10` | ⬜ | ISBN-10 with check digit |
-| `Issn` | ⬜ | ISSN with check digit |
-| `Vin` | ⬜ | Vehicle Identification Number, 17 chars, checksum validated |
+| `Slug` | ✅ | lowercase, alphanumeric + hyphens, no leading/trailing hyphens |
+| `Ean13` | ✅ | EAN-13 barcode with checksum validation |
+| `Ean8` | ✅ | EAN-8 barcode with checksum validation |
+| `Isbn13` | ✅ | ISBN-13 with check digit |
+| `Isbn10` | ✅ | ISBN-10 with check digit |
+| `Issn` | ✅ | ISSN with check digit |
+| `Vin` | ✅ | Vehicle Identification Number, 17 chars, checksum validated |
 
 ---
 
@@ -135,11 +135,11 @@
 | Feature | Total | Done | Remaining |
 |---|---|---|---|
 | `contact` | 5 | 5 | 0 |
-| `identifiers` | 7 | 0 | 7 |
+| `identifiers` | 7 | 7 | 0 |
 | `finance` | 9 | 0 | 9 |
 | `temporal` | 5 | 0 | 5 |
 | `geo` | 6 | 0 | 6 |
 | `net` | 10 | 0 | 10 |
 | `measurement` | 10 | 0 | 10 |
 | `primitives` | 10 | 10 | 0 |
-| **Total** | **62** | **15** | **47** |
+| **Total** | **62** | **22** | **40** |
