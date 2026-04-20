@@ -35,7 +35,7 @@ full = [
 thiserror = "2"
 once_cell = { version = "1", optional = true }
 regex = { version = "1", optional = true }
-rust_decimal = { version = "1", optional = true }
+rust_decimal = { version = "1.26", optional = true }
 chrono = { version = "0.4", optional = true, features = ["serde"] }
 uuid = { version = "1", optional = true, features = ["v4"] }
 ulid = { version = "1", optional = true }
