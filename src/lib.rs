@@ -44,6 +44,9 @@ pub mod traits;
 #[cfg(feature = "contact")]
 pub mod contact;
 
+#[cfg(feature = "primitives")]
+pub mod primitives;
+
 /// Convenience re-exports for the most commonly used types.
 ///
 /// Add `use arvo::prelude::*;` to bring the `ValueObject` trait and
@@ -54,4 +57,10 @@ pub mod prelude {
 
     #[cfg(feature = "contact")]
     pub use crate::contact::{CountryCode, EmailAddress};
+
+    #[cfg(feature = "primitives")]
+    pub use crate::primitives::{
+        Base64String, BoundedString, HexColor, Locale, NonEmptyString, NonNegativeDecimal,
+        NonNegativeInt, PositiveDecimal, PositiveInt, Probability,
+    };
 }

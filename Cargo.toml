@@ -19,6 +19,7 @@ default = []
 
 # Domain modules — opt-in so you only pay for what you use
 contact = ["dep:once_cell", "dep:regex", "dep:url"]
+primitives = ["dep:rust_decimal", "dep:base64"]
 
 # Cross-cutting concerns can be combined with any module
 serde = ["dep:serde"]
@@ -27,17 +28,19 @@ sql = ["dep:sqlx"]
 # Everything at once
 full = [
     "contact",
+    "primitives",
 ]
 
 [dependencies]
 thiserror = "2"
 once_cell = { version = "1", optional = true }
 regex = { version = "1", optional = true }
-rust_decimal = { version = "1", optional = true }
+rust_decimal = { version = "1.26", optional = true }
 chrono = { version = "0.4", optional = true, features = ["serde"] }
 uuid = { version = "1", optional = true, features = ["v4"] }
 ulid = { version = "1", optional = true }
 url = { version = "~2.4", optional = true }
+base64 = { version = "0.22", optional = true }
 serde = { version = "1", optional = true, features = ["derive"] }
 sqlx = { version = "0.8", optional = true, features = ["postgres"] }
 

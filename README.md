@@ -202,7 +202,7 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 | `geo` | `Latitude`, `Longitude`, `Coordinate`, `BoundingBox`, `TimeZone` | 6 | 0 / 6 |
 | `net` | `Url`, `IpAddress`, `MacAddress`, `ApiKey`, `Port` | 10 | 0 / 10 |
 | `measurement` | `Length`, `Weight`, `Temperature`, `Speed` ⚠️ needs unit conversion design | 10 | 0 / 10 |
-| `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 10 | 0 / 10 |
+| `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 10 | 10 / 10 ✅ |
 
 → Full details and design rationale in [ROADMAP.md](ROADMAP.md)
 
