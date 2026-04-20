@@ -1,0 +1,84 @@
+use crate::errors::ValidationError;
+use crate::traits::ValueObject;
+use rust_decimal::Decimal;
+
+/// Input type for [`PositiveDecimal`].
+pub type PositiveDecimalInput = Decimal;
+
+/// Output type for [`PositiveDecimal`].
+pub type PositiveDecimalOutput = Decimal;
+
+/// A strictly positive decimal number (`Decimal > 0`).
+///
+/// Zero and negative values are rejected on construction.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use arvo::primitives::PositiveDecimal;
+/// use arvo::traits::ValueObject;
+/// use rust_decimal_macros::dec;
+///
+/// let price = PositiveDecimal::new(dec!(9.99)).unwrap();
+/// assert_eq!(*price.value(), dec!(9.99));
+///
+/// assert!(PositiveDecimal::new(dec!(0)).is_err());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+pub struct PositiveDecimal(Decimal);
+
+impl ValueObject for PositiveDecimal {
+    type Input = PositiveDecimalInput;
+    type Output = PositiveDecimalOutput;
+    type Error = ValidationError;
+
+    fn new(value: Self::Input) -> Result<Self, Self::Error> {
+        if value <= Decimal::ZERO {
+            return Err(ValidationError::OutOfRange {
+                type_name: "PositiveDecimal",
+                min: "0 (exclusive)".into(),
+                max: "∞".into(),
+                actual: value.to_string(),
+            });
+        }
+        Ok(Self(value))
+    }
+
+    fn value(&self) -> &Self::Output {
+        &self.0
+    }
+
+    fn into_inner(self) -> Self::Input {
+        self.0
+    }
+}
+
+impl std::fmt::Display for PositiveDecimal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rust_decimal::prelude::FromStr;
+
+    #[test]
+    fn accepts_positive_value() {
+        let d = PositiveDecimal::new(Decimal::from_str("9.99").unwrap()).unwrap();
+        assert_eq!(d.value(), &Decimal::from_str("9.99").unwrap());
+    }
+
+    #[test]
+    fn rejects_zero() {
+        assert!(PositiveDecimal::new(Decimal::ZERO).is_err());
+    }
+
+    #[test]
+    fn rejects_negative() {
+        assert!(PositiveDecimal::new(Decimal::from_str("-1").unwrap()).is_err());
+    }
+}

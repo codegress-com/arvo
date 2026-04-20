@@ -44,6 +44,9 @@ pub mod traits;
 #[cfg(feature = "contact")]
 pub mod contact;
 
+#[cfg(feature = "primitives")]
+pub mod primitives;
+
 /// Convenience re-exports for the most commonly used types.
 ///
 /// Add `use arvo::prelude::*;` to bring the `ValueObject` trait and
