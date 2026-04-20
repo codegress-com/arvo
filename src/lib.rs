@@ -12,7 +12,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! arvo = { version = "0.2", features = ["contact", "finance"] }
+//! arvo = { version = "0.4", features = ["contact", "finance"] }
 //! ```
 //!
 //! Available features: `contact`, `serde`, `full`.

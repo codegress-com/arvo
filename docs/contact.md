@@ -4,7 +4,7 @@ Feature flag: `contact`
 
 ```toml
 [dependencies]
-arvo = { version = "0.2", features = ["contact"] }
+arvo = { version = "0.4", features = ["contact"] }
 ```
 
 ---
