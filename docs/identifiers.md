@@ -4,7 +4,7 @@ Feature flag: `identifiers`
 
 ```toml
 [dependencies]
-arvo = { version = "0.3", features = ["identifiers"] }
+arvo = { version = "0.4", features = ["identifiers"] }
 ```
 
 ---
