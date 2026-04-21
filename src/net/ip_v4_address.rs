@@ -63,6 +63,18 @@ impl ValueObject for IpV4Address {
     }
 }
 
+impl IpV4Address {
+    /// Returns `true` for loopback addresses (`127.0.0.0/8`).
+    pub fn is_loopback(&self) -> bool {
+        self.0.parse::<std::net::Ipv4Addr>().map(|ip| ip.is_loopback()).unwrap_or(false)
+    }
+
+    /// Returns `true` for private addresses (10/8, 172.16/12, 192.168/16).
+    pub fn is_private(&self) -> bool {
+        self.0.parse::<std::net::Ipv4Addr>().map(|ip| ip.is_private()).unwrap_or(false)
+    }
+}
+
 impl TryFrom<&str> for IpV4Address {
     type Error = ValidationError;
 
@@ -125,6 +137,20 @@ mod tests {
     #[test]
     fn rejects_ipv6() {
         assert!(IpV4Address::new("::1".into()).is_err());
+    }
+
+    #[test]
+    fn is_loopback() {
+        assert!(IpV4Address::new("127.0.0.1".into()).unwrap().is_loopback());
+        assert!(!IpV4Address::new("192.168.1.1".into()).unwrap().is_loopback());
+    }
+
+    #[test]
+    fn is_private() {
+        assert!(IpV4Address::new("10.0.0.1".into()).unwrap().is_private());
+        assert!(IpV4Address::new("172.16.0.1".into()).unwrap().is_private());
+        assert!(IpV4Address::new("192.168.1.1".into()).unwrap().is_private());
+        assert!(!IpV4Address::new("8.8.8.8".into()).unwrap().is_private());
     }
 
     #[test]

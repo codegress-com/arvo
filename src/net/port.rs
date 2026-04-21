@@ -48,6 +48,23 @@ impl ValueObject for Port {
     }
 }
 
+impl Port {
+    /// Returns `true` for well-known ports (1–1023).
+    pub fn is_well_known(&self) -> bool {
+        self.0 <= 1023
+    }
+
+    /// Returns `true` for registered ports (1024–49151).
+    pub fn is_registered(&self) -> bool {
+        (1024..=49151).contains(&self.0)
+    }
+
+    /// Returns `true` for ephemeral / dynamic ports (49152–65535).
+    pub fn is_ephemeral(&self) -> bool {
+        self.0 >= 49152
+    }
+}
+
 impl std::fmt::Display for Port {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
@@ -84,6 +101,15 @@ mod tests {
     #[test]
     fn rejects_zero() {
         assert!(Port::new(0).is_err());
+    }
+
+    #[test]
+    fn port_categories() {
+        assert!(Port::new(80).unwrap().is_well_known());
+        assert!(Port::new(8080).unwrap().is_registered());
+        assert!(Port::new(60000).unwrap().is_ephemeral());
+        assert!(!Port::new(8080).unwrap().is_well_known());
+        assert!(!Port::new(80).unwrap().is_ephemeral());
     }
 
     #[test]

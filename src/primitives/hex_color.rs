@@ -94,6 +94,11 @@ impl HexColor {
     pub fn b(&self) -> u8 {
         Self::channel(&self.0, 5)
     }
+
+    /// Returns the RGB channels as a tuple `(r, g, b)`.
+    pub fn to_rgb(&self) -> (u8, u8, u8) {
+        (self.r(), self.g(), self.b())
+    }
 }
 
 impl TryFrom<&str> for HexColor {

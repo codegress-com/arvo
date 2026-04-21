@@ -105,6 +105,16 @@ impl CardExpiryDate {
         let yy: u16 = self.0[3..].parse().unwrap();
         2000 + yy
     }
+
+    /// Returns the number of full months from the current month until expiry.
+    pub fn months_until(&self) -> u32 {
+        let now = Local::now();
+        let current_year = now.year() as u16;
+        let current_month = now.month() as u8;
+        let expiry_months = self.year() * 12 + self.month() as u16;
+        let current_months = current_year * 12 + current_month as u16;
+        expiry_months.saturating_sub(current_months) as u32
+    }
 }
 
 impl TryFrom<&str> for CardExpiryDate {

@@ -82,6 +82,39 @@ impl Money {
     pub fn currency(&self) -> &CurrencyCode {
         &self.currency
     }
+
+    /// Returns the sum of `self` and `other`. Fails if currencies differ.
+    pub fn add(&self, other: &Money) -> Result<Money, ValidationError> {
+        if self.currency != other.currency {
+            return Err(ValidationError::invalid(
+                "Money",
+                &format!("cannot add {} and {}", self.currency, other.currency),
+            ));
+        }
+        let sum = self.amount + other.amount;
+        let canonical = format!("{:.2} {}", sum, self.currency);
+        Ok(Money { amount: sum, currency: self.currency.clone(), canonical })
+    }
+
+    /// Returns the difference `self - other`. Fails if currencies differ.
+    pub fn sub(&self, other: &Money) -> Result<Money, ValidationError> {
+        if self.currency != other.currency {
+            return Err(ValidationError::invalid(
+                "Money",
+                &format!("cannot subtract {} and {}", self.currency, other.currency),
+            ));
+        }
+        let diff = self.amount - other.amount;
+        let canonical = format!("{:.2} {}", diff, self.currency);
+        Ok(Money { amount: diff, currency: self.currency.clone(), canonical })
+    }
+
+    /// Returns the negation of this amount (e.g. a debt).
+    pub fn neg(&self) -> Money {
+        let negated = -self.amount;
+        let canonical = format!("{:.2} {}", negated, self.currency);
+        Money { amount: negated, currency: self.currency.clone(), canonical }
+    }
 }
 
 impl std::fmt::Display for Money {
@@ -171,6 +204,35 @@ mod tests {
         })
         .unwrap();
         assert_eq!(m.to_string(), m.value().to_owned());
+    }
+
+    #[test]
+    fn add_same_currency() {
+        let a = Money::new(MoneyInput { amount: "10.00".parse().unwrap(), currency: eur() }).unwrap();
+        let b = Money::new(MoneyInput { amount: "5.50".parse().unwrap(), currency: eur() }).unwrap();
+        let result = a.add(&b).unwrap();
+        assert_eq!(result.value(), "15.50 EUR");
+    }
+
+    #[test]
+    fn add_different_currencies_fails() {
+        let a = Money::new(MoneyInput { amount: "10.00".parse().unwrap(), currency: eur() }).unwrap();
+        let b = Money::new(MoneyInput { amount: "5.00".parse().unwrap(), currency: usd() }).unwrap();
+        assert!(a.add(&b).is_err());
+    }
+
+    #[test]
+    fn sub_same_currency() {
+        let a = Money::new(MoneyInput { amount: "10.00".parse().unwrap(), currency: eur() }).unwrap();
+        let b = Money::new(MoneyInput { amount: "3.00".parse().unwrap(), currency: eur() }).unwrap();
+        let result = a.sub(&b).unwrap();
+        assert_eq!(result.value(), "7.00 EUR");
+    }
+
+    #[test]
+    fn neg_returns_negated_amount() {
+        let m = Money::new(MoneyInput { amount: "10.00".parse().unwrap(), currency: eur() }).unwrap();
+        assert_eq!(m.neg().value(), "-10.00 EUR");
     }
 
     #[test]

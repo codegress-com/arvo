@@ -116,6 +116,11 @@ impl BusinessHours {
     pub fn duration(&self) -> Duration {
         self.close - self.open
     }
+
+    /// Returns `true` if `time` falls within `[open, close)`.
+    pub fn is_open_at(&self, time: NaiveTime) -> bool {
+        time >= self.open && time < self.close
+    }
 }
 
 impl std::fmt::Display for BusinessHours {
@@ -229,6 +234,32 @@ mod tests {
             .unwrap();
             assert!(h.value().starts_with(abbr));
         }
+    }
+
+    #[test]
+    fn is_open_at_during_hours() {
+        let h = BusinessHours::new(valid_input()).unwrap();
+        let noon = NaiveTime::from_hms_opt(12, 0, 0).unwrap();
+        assert!(h.is_open_at(noon));
+    }
+
+    #[test]
+    fn is_open_at_open_time_inclusive() {
+        let h = BusinessHours::new(valid_input()).unwrap();
+        assert!(h.is_open_at(open()));
+    }
+
+    #[test]
+    fn is_open_at_close_time_exclusive() {
+        let h = BusinessHours::new(valid_input()).unwrap();
+        assert!(!h.is_open_at(close()));
+    }
+
+    #[test]
+    fn is_open_at_before_open() {
+        let h = BusinessHours::new(valid_input()).unwrap();
+        let early = NaiveTime::from_hms_opt(8, 0, 0).unwrap();
+        assert!(!h.is_open_at(early));
     }
 
     #[test]

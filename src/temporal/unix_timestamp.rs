@@ -1,3 +1,5 @@
+use chrono::{DateTime, TimeZone, Utc};
+
 use crate::errors::ValidationError;
 use crate::traits::ValueObject;
 
@@ -51,6 +53,13 @@ impl ValueObject for UnixTimestamp {
     }
 }
 
+impl UnixTimestamp {
+    /// Converts to a `DateTime<Utc>`.
+    pub fn as_datetime(&self) -> DateTime<Utc> {
+        Utc.timestamp_opt(self.0, 0).single().expect("valid timestamp")
+    }
+}
+
 impl std::fmt::Display for UnixTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
@@ -82,6 +91,18 @@ mod tests {
     fn into_inner_roundtrip() {
         let ts = UnixTimestamp::new(42).unwrap();
         assert_eq!(ts.into_inner(), 42);
+    }
+
+    #[test]
+    fn as_datetime_epoch() {
+        let ts = UnixTimestamp::new(0).unwrap();
+        assert_eq!(ts.as_datetime().timestamp(), 0);
+    }
+
+    #[test]
+    fn as_datetime_nonzero() {
+        let ts = UnixTimestamp::new(1_700_000_000).unwrap();
+        assert_eq!(ts.as_datetime().timestamp(), 1_700_000_000);
     }
 
     #[test]

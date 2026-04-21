@@ -78,6 +78,20 @@ impl ValueObject for Locale {
     }
 }
 
+impl Locale {
+    /// Returns the language subtag, e.g. `"en"` from `"en-US"`.
+    pub fn language(&self) -> &str {
+        self.0.split('-').next().unwrap_or(&self.0)
+    }
+
+    /// Returns the region subtag if present, e.g. `Some("US")` from `"en-US"`.
+    pub fn region(&self) -> Option<&str> {
+        let mut parts = self.0.splitn(2, '-');
+        parts.next();
+        parts.next()
+    }
+}
+
 impl TryFrom<&str> for Locale {
     type Error = ValidationError;
 
@@ -150,6 +164,25 @@ mod tests {
     #[test]
     fn rejects_empty() {
         assert!(Locale::new(String::new()).is_err());
+    }
+
+    #[test]
+    fn language_subtag() {
+        let l = Locale::new("en-US".into()).unwrap();
+        assert_eq!(l.language(), "en");
+    }
+
+    #[test]
+    fn language_only_locale() {
+        let l = Locale::new("fr".into()).unwrap();
+        assert_eq!(l.language(), "fr");
+        assert_eq!(l.region(), None);
+    }
+
+    #[test]
+    fn region_subtag() {
+        let l = Locale::new("cs-CZ".into()).unwrap();
+        assert_eq!(l.region(), Some("CZ"));
     }
 
     #[test]

@@ -93,6 +93,16 @@ impl BoundingBox {
     pub fn ne(&self) -> &Coordinate {
         &self.ne
     }
+
+    /// Returns `true` if `coord` lies within this bounding box (inclusive on all edges).
+    pub fn contains(&self, coord: &Coordinate) -> bool {
+        let lat = coord.lat().value();
+        let lng = coord.lng().value();
+        lat >= self.sw.lat().value()
+            && lat <= self.ne.lat().value()
+            && lng >= self.sw.lng().value()
+            && lng <= self.ne.lng().value()
+    }
 }
 
 impl std::fmt::Display for BoundingBox {
@@ -167,6 +177,37 @@ mod tests {
         .unwrap();
         assert_eq!(*bbox.sw().lat().value(), 48.0);
         assert_eq!(*bbox.ne().lng().value(), 18.0);
+    }
+
+    #[test]
+    fn contains_inside() {
+        let bbox = BoundingBox::new(BoundingBoxInput {
+            sw: coord(48.0, 14.0),
+            ne: coord(51.0, 18.0),
+        })
+        .unwrap();
+        assert!(bbox.contains(&coord(50.0, 16.0)));
+    }
+
+    #[test]
+    fn contains_on_edge() {
+        let bbox = BoundingBox::new(BoundingBoxInput {
+            sw: coord(48.0, 14.0),
+            ne: coord(51.0, 18.0),
+        })
+        .unwrap();
+        assert!(bbox.contains(&coord(48.0, 14.0)));
+        assert!(bbox.contains(&coord(51.0, 18.0)));
+    }
+
+    #[test]
+    fn contains_outside() {
+        let bbox = BoundingBox::new(BoundingBoxInput {
+            sw: coord(48.0, 14.0),
+            ne: coord(51.0, 18.0),
+        })
+        .unwrap();
+        assert!(!bbox.contains(&coord(52.0, 16.0)));
     }
 
     #[test]

@@ -74,6 +74,11 @@ impl BirthDate {
             (years - 1) as u32
         }
     }
+
+    /// Returns `true` if the person is under 18 years old as of today.
+    pub fn is_minor(&self) -> bool {
+        self.age_years() < 18
+    }
 }
 
 impl std::fmt::Display for BirthDate {

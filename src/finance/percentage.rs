@@ -56,6 +56,13 @@ impl ValueObject for Percentage {
     }
 }
 
+impl Percentage {
+    /// Returns the value as a fraction in `0.0..=1.0` (e.g. `42.5` → `0.425`).
+    pub fn as_fraction(&self) -> f64 {
+        self.0 / 100.0
+    }
+}
+
 impl std::fmt::Display for Percentage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}%", self.0)

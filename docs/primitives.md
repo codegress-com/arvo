@@ -270,6 +270,7 @@ let c: HexColor = "#1A2B3C".try_into()?;
 | `r()` | `u8` | `255` |
 | `g()` | `u8` | `0` |
 | `b()` | `u8` | `0` |
+| `to_rgb()` | `(u8, u8, u8)` | `(255, 0, 0)` |
 | `into_inner()` | `String` | `"#FF0000"` |
 
 ### Errors
@@ -306,6 +307,8 @@ assert_eq!(fr.value(), "fr");
 | Method | Returns | Example |
 |---|---|---|
 | `value()` | `&String` | `"en-US"` |
+| `language()` | `&str` | `"en"` (language subtag) |
+| `region()` | `Option<&str>` | `Some("US")` / `None` for language-only tags |
 | `into_inner()` | `String` | `"en-US"` |
 
 ### Errors
