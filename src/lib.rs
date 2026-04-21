@@ -53,6 +53,9 @@ pub mod identifiers;
 #[cfg(feature = "primitives")]
 pub mod primitives;
 
+#[cfg(feature = "temporal")]
+pub mod temporal;
+
 /// Convenience re-exports for the most commonly used types.
 ///
 /// Add `use arvo::prelude::*;` to bring the `ValueObject` trait and
