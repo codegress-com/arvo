@@ -77,11 +77,12 @@ impl HttpStatusCode {
     }
 }
 
-impl TryFrom<u16> for HttpStatusCode {
+impl TryFrom<&str> for HttpStatusCode {
     type Error = ValidationError;
 
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value.trim().parse::<u16>().map_err(|_| ValidationError::invalid("HttpStatusCode", value))?;
+        Self::new(parsed)
     }
 }
 

@@ -76,11 +76,15 @@ impl Coordinate {
     }
 }
 
-impl TryFrom<CoordinateInput> for Coordinate {
+impl TryFrom<&str> for Coordinate {
     type Error = ValidationError;
 
-    fn try_from(value: CoordinateInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Coordinate", value);
+        let (lat_str, lng_str) = value.trim().split_once(", ").ok_or_else(err)?;
+        let lat = Latitude::new(lat_str.trim().parse::<f64>().map_err(|_| err())?).map_err(|_| err())?;
+        let lng = Longitude::new(lng_str.trim().parse::<f64>().map_err(|_| err())?).map_err(|_| err())?;
+        Self::new(CoordinateInput { lat, lng })
     }
 }
 

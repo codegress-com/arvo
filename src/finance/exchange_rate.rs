@@ -110,11 +110,17 @@ impl ExchangeRate {
     }
 }
 
-impl TryFrom<ExchangeRateInput> for ExchangeRate {
+impl TryFrom<&str> for ExchangeRate {
     type Error = ValidationError;
 
-    fn try_from(value: ExchangeRateInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("ExchangeRate", value);
+        let (pair_str, rate_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let (from_str, to_str) = pair_str.split_once('/').ok_or_else(err)?;
+        let from = CurrencyCode::new(from_str.to_owned()).map_err(|_| err())?;
+        let to = CurrencyCode::new(to_str.to_owned()).map_err(|_| err())?;
+        let rate: rust_decimal::Decimal = rate_str.trim().parse().map_err(|_| err())?;
+        Self::new(ExchangeRateInput { from, to, rate })
     }
 }
 

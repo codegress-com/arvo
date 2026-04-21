@@ -88,11 +88,21 @@ impl Speed {
     }
 }
 
-impl TryFrom<SpeedInput> for Speed {
+impl TryFrom<&str> for Speed {
     type Error = ValidationError;
 
-    fn try_from(value: SpeedInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Speed", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "m/s" => SpeedUnit::Ms,
+            "km/h" => SpeedUnit::Kmh,
+            "mph" => SpeedUnit::Mph,
+            "kn" => SpeedUnit::Kn,
+            _ => return Err(err()),
+        };
+        Self::new(SpeedInput { value: val, unit })
     }
 }
 

@@ -91,11 +91,21 @@ impl Frequency {
     }
 }
 
-impl TryFrom<FrequencyInput> for Frequency {
+impl TryFrom<&str> for Frequency {
     type Error = ValidationError;
 
-    fn try_from(value: FrequencyInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Frequency", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "Hz" => FrequencyUnit::Hz,
+            "kHz" => FrequencyUnit::KHz,
+            "MHz" => FrequencyUnit::MHz,
+            "GHz" => FrequencyUnit::GHz,
+            _ => return Err(err()),
+        };
+        Self::new(FrequencyInput { value: val, unit })
     }
 }
 

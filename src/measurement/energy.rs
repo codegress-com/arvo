@@ -92,11 +92,23 @@ impl Energy {
     }
 }
 
-impl TryFrom<EnergyInput> for Energy {
+impl TryFrom<&str> for Energy {
     type Error = ValidationError;
 
-    fn try_from(value: EnergyInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Energy", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "J" => EnergyUnit::J,
+            "kJ" => EnergyUnit::KJ,
+            "MJ" => EnergyUnit::MJ,
+            "kWh" => EnergyUnit::KWh,
+            "cal" => EnergyUnit::Cal,
+            "kcal" => EnergyUnit::Kcal,
+            _ => return Err(err()),
+        };
+        Self::new(EnergyInput { value: val, unit })
     }
 }
 

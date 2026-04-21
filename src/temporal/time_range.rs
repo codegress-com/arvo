@@ -104,11 +104,15 @@ impl TimeRange {
     }
 }
 
-impl TryFrom<TimeRangeInput> for TimeRange {
+impl TryFrom<&str> for TimeRange {
     type Error = ValidationError;
 
-    fn try_from(value: TimeRangeInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("TimeRange", value);
+        let (start_str, end_str) = value.trim().split_once(" / ").ok_or_else(err)?;
+        let start: chrono::DateTime<chrono::Utc> = start_str.trim().parse().map_err(|_| err())?;
+        let end: chrono::DateTime<chrono::Utc> = end_str.trim().parse().map_err(|_| err())?;
+        Self::new(TimeRangeInput { start, end })
     }
 }
 

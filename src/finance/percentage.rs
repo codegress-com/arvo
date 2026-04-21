@@ -63,11 +63,12 @@ impl Percentage {
     }
 }
 
-impl TryFrom<f64> for Percentage {
+impl TryFrom<&str> for Percentage {
     type Error = ValidationError;
 
-    fn try_from(value: f64) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value.trim().parse::<f64>().map_err(|_| ValidationError::invalid("Percentage", value))?;
+        Self::new(parsed)
     }
 }
 

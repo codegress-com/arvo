@@ -107,11 +107,20 @@ impl Temperature {
     }
 }
 
-impl TryFrom<TemperatureInput> for Temperature {
+impl TryFrom<&str> for Temperature {
     type Error = ValidationError;
 
-    fn try_from(value: TemperatureInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Temperature", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "°C" => TemperatureUnit::Celsius,
+            "°F" => TemperatureUnit::Fahrenheit,
+            "K" => TemperatureUnit::Kelvin,
+            _ => return Err(err()),
+        };
+        Self::new(TemperatureInput { value: val, unit })
     }
 }
 

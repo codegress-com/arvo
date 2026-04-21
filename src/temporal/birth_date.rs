@@ -81,11 +81,12 @@ impl BirthDate {
     }
 }
 
-impl TryFrom<NaiveDate> for BirthDate {
+impl TryFrom<&str> for BirthDate {
     type Error = ValidationError;
 
-    fn try_from(value: NaiveDate) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = chrono::NaiveDate::parse_from_str(value.trim(), "%Y-%m-%d").map_err(|_| ValidationError::invalid("BirthDate", value))?;
+        Self::new(parsed)
     }
 }
 

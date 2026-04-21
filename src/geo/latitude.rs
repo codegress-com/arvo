@@ -52,11 +52,12 @@ impl ValueObject for Latitude {
     }
 }
 
-impl TryFrom<f64> for Latitude {
+impl TryFrom<&str> for Latitude {
     type Error = ValidationError;
 
-    fn try_from(value: f64) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value.trim().parse::<f64>().map_err(|_| ValidationError::invalid("Latitude", value))?;
+        Self::new(parsed)
     }
 }
 

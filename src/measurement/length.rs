@@ -94,11 +94,23 @@ impl Length {
     }
 }
 
-impl TryFrom<LengthInput> for Length {
+impl TryFrom<&str> for Length {
     type Error = ValidationError;
 
-    fn try_from(value: LengthInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Length", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "mm" => LengthUnit::Mm,
+            "cm" => LengthUnit::Cm,
+            "m" => LengthUnit::M,
+            "km" => LengthUnit::Km,
+            "in" => LengthUnit::In,
+            "ft" => LengthUnit::Ft,
+            _ => return Err(err()),
+        };
+        Self::new(LengthInput { value: val, unit })
     }
 }
 

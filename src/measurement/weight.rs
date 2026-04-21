@@ -93,11 +93,23 @@ impl Weight {
     }
 }
 
-impl TryFrom<WeightInput> for Weight {
+impl TryFrom<&str> for Weight {
     type Error = ValidationError;
 
-    fn try_from(value: WeightInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Weight", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "mg" => WeightUnit::Mg,
+            "g" => WeightUnit::G,
+            "kg" => WeightUnit::Kg,
+            "t" => WeightUnit::T,
+            "oz" => WeightUnit::Oz,
+            "lb" => WeightUnit::Lb,
+            _ => return Err(err()),
+        };
+        Self::new(WeightInput { value: val, unit })
     }
 }
 

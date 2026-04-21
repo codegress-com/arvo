@@ -117,11 +117,15 @@ impl Money {
     }
 }
 
-impl TryFrom<MoneyInput> for Money {
+impl TryFrom<&str> for Money {
     type Error = ValidationError;
 
-    fn try_from(value: MoneyInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Money", value);
+        let (amount_str, currency_str) = value.trim().rsplit_once(' ').ok_or_else(err)?;
+        let amount: rust_decimal::Decimal = amount_str.trim().parse().map_err(|_| err())?;
+        let currency = CurrencyCode::new(currency_str.trim().to_owned()).map_err(|_| err())?;
+        Self::new(MoneyInput { amount, currency })
     }
 }
 

@@ -55,11 +55,12 @@ impl ValueObject for PositiveDecimal {
     }
 }
 
-impl TryFrom<Decimal> for PositiveDecimal {
+impl TryFrom<&str> for PositiveDecimal {
     type Error = ValidationError;
 
-    fn try_from(value: Decimal) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value.trim().parse::<Decimal>().map_err(|_| ValidationError::invalid("PositiveDecimal", value))?;
+        Self::new(parsed)
     }
 }
 

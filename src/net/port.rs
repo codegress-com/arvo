@@ -65,11 +65,12 @@ impl Port {
     }
 }
 
-impl TryFrom<u16> for Port {
+impl TryFrom<&str> for Port {
     type Error = ValidationError;
 
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value.trim().parse::<u16>().map_err(|_| ValidationError::invalid("Port", value))?;
+        Self::new(parsed)
     }
 }
 

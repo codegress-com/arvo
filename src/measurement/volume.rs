@@ -90,11 +90,22 @@ impl Volume {
     }
 }
 
-impl TryFrom<VolumeInput> for Volume {
+impl TryFrom<&str> for Volume {
     type Error = ValidationError;
 
-    fn try_from(value: VolumeInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Volume", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "ml" => VolumeUnit::Ml,
+            "l" => VolumeUnit::L,
+            "m³" => VolumeUnit::M3,
+            "fl oz" => VolumeUnit::FlOz,
+            "gal" => VolumeUnit::Gal,
+            _ => return Err(err()),
+        };
+        Self::new(VolumeInput { value: val, unit })
     }
 }
 

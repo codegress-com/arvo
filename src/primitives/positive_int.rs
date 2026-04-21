@@ -54,11 +54,12 @@ impl ValueObject for PositiveInt {
     }
 }
 
-impl TryFrom<i64> for PositiveInt {
+impl TryFrom<&str> for PositiveInt {
     type Error = ValidationError;
 
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value.trim().parse::<i64>().map_err(|_| ValidationError::invalid("PositiveInt", value))?;
+        Self::new(parsed)
     }
 }
 

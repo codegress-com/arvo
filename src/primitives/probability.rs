@@ -54,11 +54,12 @@ impl ValueObject for Probability {
     }
 }
 
-impl TryFrom<f64> for Probability {
+impl TryFrom<&str> for Probability {
     type Error = ValidationError;
 
-    fn try_from(value: f64) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value.trim().parse::<f64>().map_err(|_| ValidationError::invalid("Probability", value))?;
+        Self::new(parsed)
     }
 }
 

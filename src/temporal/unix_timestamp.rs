@@ -60,11 +60,12 @@ impl UnixTimestamp {
     }
 }
 
-impl TryFrom<i64> for UnixTimestamp {
+impl TryFrom<&str> for UnixTimestamp {
     type Error = ValidationError;
 
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value.trim().parse::<i64>().map_err(|_| ValidationError::invalid("UnixTimestamp", value))?;
+        Self::new(parsed)
     }
 }
 

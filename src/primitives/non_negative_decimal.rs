@@ -55,11 +55,12 @@ impl ValueObject for NonNegativeDecimal {
     }
 }
 
-impl TryFrom<Decimal> for NonNegativeDecimal {
+impl TryFrom<&str> for NonNegativeDecimal {
     type Error = ValidationError;
 
-    fn try_from(value: Decimal) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value.trim().parse::<Decimal>().map_err(|_| ValidationError::invalid("NonNegativeDecimal", value))?;
+        Self::new(parsed)
     }
 }
 

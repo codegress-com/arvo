@@ -94,11 +94,24 @@ impl Area {
     }
 }
 
-impl TryFrom<AreaInput> for Area {
+impl TryFrom<&str> for Area {
     type Error = ValidationError;
 
-    fn try_from(value: AreaInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Area", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "mm²" => AreaUnit::Mm2,
+            "cm²" => AreaUnit::Cm2,
+            "m²" => AreaUnit::M2,
+            "km²" => AreaUnit::Km2,
+            "in²" => AreaUnit::In2,
+            "ft²" => AreaUnit::Ft2,
+            "ha" => AreaUnit::Ha,
+            _ => return Err(err()),
+        };
+        Self::new(AreaInput { value: val, unit })
     }
 }
 

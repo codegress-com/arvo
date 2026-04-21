@@ -123,11 +123,26 @@ impl BusinessHours {
     }
 }
 
-impl TryFrom<BusinessHoursInput> for BusinessHours {
+impl TryFrom<&str> for BusinessHours {
     type Error = ValidationError;
 
-    fn try_from(value: BusinessHoursInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("BusinessHours", value);
+        let (day_str, times_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let weekday = match day_str {
+            "Mon" => chrono::Weekday::Mon,
+            "Tue" => chrono::Weekday::Tue,
+            "Wed" => chrono::Weekday::Wed,
+            "Thu" => chrono::Weekday::Thu,
+            "Fri" => chrono::Weekday::Fri,
+            "Sat" => chrono::Weekday::Sat,
+            "Sun" => chrono::Weekday::Sun,
+            _ => return Err(err()),
+        };
+        let (open_str, close_str) = times_str.split_once('\u{2013}').ok_or_else(err)?;
+        let open = chrono::NaiveTime::parse_from_str(open_str.trim(), "%H:%M").map_err(|_| err())?;
+        let close = chrono::NaiveTime::parse_from_str(close_str.trim(), "%H:%M").map_err(|_| err())?;
+        Self::new(BusinessHoursInput { weekday, open, close })
     }
 }
 

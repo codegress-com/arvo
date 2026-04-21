@@ -105,11 +105,17 @@ impl BoundingBox {
     }
 }
 
-impl TryFrom<BoundingBoxInput> for BoundingBox {
+impl TryFrom<&str> for BoundingBox {
     type Error = ValidationError;
 
-    fn try_from(value: BoundingBoxInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("BoundingBox", value);
+        let (sw_part, ne_part) = value.trim().split_once(" / ").ok_or_else(err)?;
+        let sw_str = sw_part.strip_prefix("SW: ").ok_or_else(err)?;
+        let ne_str = ne_part.strip_prefix("NE: ").ok_or_else(err)?;
+        let sw = Coordinate::try_from(sw_str).map_err(|_| err())?;
+        let ne = Coordinate::try_from(ne_str).map_err(|_| err())?;
+        Self::new(BoundingBoxInput { sw, ne })
     }
 }
 

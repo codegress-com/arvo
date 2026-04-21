@@ -95,11 +95,23 @@ impl Pressure {
     }
 }
 
-impl TryFrom<PressureInput> for Pressure {
+impl TryFrom<&str> for Pressure {
     type Error = ValidationError;
 
-    fn try_from(value: PressureInput) -> Result<Self, Self::Error> {
-        Self::new(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Pressure", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "Pa" => PressureUnit::Pa,
+            "kPa" => PressureUnit::KPa,
+            "MPa" => PressureUnit::MPa,
+            "bar" => PressureUnit::Bar,
+            "psi" => PressureUnit::Psi,
+            "atm" => PressureUnit::Atm,
+            _ => return Err(err()),
+        };
+        Self::new(PressureInput { value: val, unit })
     }
 }
 
