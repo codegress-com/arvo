@@ -45,6 +45,7 @@ let email: EmailAddress = "user@example.com".try_into()?;
 | [docs/value-objects.md](docs/value-objects.md) | What value objects are, simple vs composite, normalisation |
 | [docs/implementing.md](docs/implementing.md) | How to implement the `ValueObject` trait for custom types |
 | [docs/contact.md](docs/contact.md) | Reference for all `contact` module types |
+| [docs/finance.md](docs/finance.md) | Reference for all `finance` module types |
 
 ---
 
@@ -63,7 +64,10 @@ Enable only the modules you need — unused features add zero dependencies.
 
 | Feature | What you get | Extra deps |
 |:---|:---|:---|
-| `contact` | `EmailAddress`, `CountryCode`, `PhoneNumber`, `Website` | `once_cell`, `regex`, `url` |
+| `contact` | `EmailAddress`, `CountryCode`, `PhoneNumber`, `PostalAddress`, `Website` | `once_cell`, `regex`, `url` |
+| `finance` | `Money`, `CurrencyCode`, `Iban`, `Bic`, `VatNumber`, `Percentage`, `ExchangeRate`, `CreditCardNumber`, `CardExpiryDate` | `rust_decimal`, `chrono` |
+| `identifiers` | `Slug`, `Ean13`, `Ean8`, `Isbn13`, `Isbn10`, `Issn`, `Vin` | — |
+| `primitives` | `NonEmptyString`, `BoundedString`, `PositiveInt`, `NonNegativeInt`, `PositiveDecimal`, `NonNegativeDecimal`, `Probability`, `HexColor`, `Locale`, `Base64String` | `rust_decimal`, `base64` |
 | `serde` | `Serialize` / `Deserialize` on all types | `serde` |
 | `full` | All domain modules | all of the above |
 
@@ -197,7 +201,7 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 |:---|:---|:---:|:---:|
 | `contact` | `EmailAddress`, `PhoneNumber`, `CountryCode`, `PostalAddress`, `Website` | 5 | 5 / 5 ✅ |
 | `identifiers` | `Slug`, `Ean13`, `Isbn13`, `Vin` | 7 | 7 / 7 ✅ |
-| `finance` | `Money`, `Iban`, `Bic`, `VatNumber`, `CreditCardNumber` | 9 | 0 / 9 |
+| `finance` | `Money`, `CurrencyCode`, `Iban`, `Bic`, `VatNumber`, `Percentage`, `ExchangeRate`, `CreditCardNumber`, `CardExpiryDate` | 9 | 9 / 9 ✅ |
 | `temporal` | `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | 5 | 0 / 5 |
 | `geo` | `Latitude`, `Longitude`, `Coordinate`, `BoundingBox`, `TimeZone` | 6 | 0 / 6 |
 | `net` | `Url`, `IpAddress`, `MacAddress`, `ApiKey`, `Port` | 10 | 0 / 10 |

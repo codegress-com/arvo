@@ -38,15 +38,15 @@
 
 | Type | Status | Notes |
 |---|---|---|
-| `Money` | ⬜ | `Decimal` amount + `CurrencyCode`; immutable arithmetic helpers |
-| `CurrencyCode` | ⬜ | ISO 4217 alpha-3 (EUR, USD, CZK…) |
-| `Iban` | ⬜ | IBAN with mod-97 checksum |
-| `Bic` | ⬜ | BIC/SWIFT, 8 or 11 chars |
-| `VatNumber` | ⬜ | EU VAT number with country-prefix + format validation |
-| `Percentage` | ⬜ | `Decimal` in range 0–100 |
-| `ExchangeRate` | ⬜ | positive `Decimal`, from/to `CurrencyCode` pair |
-| `CreditCardNumber` | ⬜ | Luhn algorithm validation; masked `Display` (shows only last 4 digits) |
-| `CardExpiryDate` | ⬜ | MM/YY; rejected if in the past at construction time |
+| `Money` | ✅ | `Decimal` amount + `CurrencyCode`; immutable arithmetic helpers |
+| `CurrencyCode` | ✅ | ISO 4217 alpha-3 (EUR, USD, CZK…) |
+| `Iban` | ✅ | IBAN with mod-97 checksum |
+| `Bic` | ✅ | BIC/SWIFT, 8 or 11 chars |
+| `VatNumber` | ✅ | EU VAT number with country-prefix + format validation |
+| `Percentage` | ✅ | `f64` in range 0–100 |
+| `ExchangeRate` | ✅ | positive `Decimal`, from/to `CurrencyCode` pair |
+| `CreditCardNumber` | ✅ | Luhn algorithm validation; masked `Display` (shows only last 4 digits) |
+| `CardExpiryDate` | ✅ | MM/YY; rejected if in the past at construction time |
 
 ---
 
@@ -136,10 +136,10 @@
 |---|---|---|---|
 | `contact` | 5 | 5 | 0 |
 | `identifiers` | 7 | 7 | 0 |
-| `finance` | 9 | 0 | 9 |
+| `finance` | 9 | 9 | 0 |
 | `temporal` | 5 | 0 | 5 |
 | `geo` | 6 | 0 | 6 |
 | `net` | 10 | 0 | 10 |
 | `measurement` | 10 | 0 | 10 |
 | `primitives` | 10 | 10 | 0 |
-| **Total** | **62** | **22** | **40** |
+| **Total** | **62** | **31** | **31** |
