@@ -81,16 +81,16 @@
 
 | Type | Status | Notes |
 |---|---|---|
-| `Url` | ⬜ | valid URL, wraps `url` crate |
-| `Domain` | ⬜ | valid domain name without scheme |
-| `IpV4Address` | ⬜ | valid IPv4 (e.g. `192.168.1.1`) |
-| `IpV6Address` | ⬜ | valid IPv6 |
-| `IpAddress` | ⬜ | enum: `V4(IpV4Address)` \| `V6(IpV6Address)` |
-| `Port` | ⬜ | `u16` in range 1–65535 |
-| `MacAddress` | ⬜ | 6-byte MAC, normalised to lowercase colon-separated hex |
-| `MimeType` | ⬜ | valid MIME type (e.g. `image/png`) |
-| `HttpStatusCode` | ⬜ | `u16` in range 100–599 |
-| `ApiKey` | ⬜ | non-empty; masked `Display` shows only last 4 chars |
+| `Url` | ✅ | valid URL, wraps `url` crate |
+| `Domain` | ✅ | valid domain name without scheme |
+| `IpV4Address` | ✅ | valid IPv4 (e.g. `192.168.1.1`) |
+| `IpV6Address` | ✅ | valid IPv6 |
+| `IpAddress` | ✅ | enum: `V4(IpV4Address)` \| `V6(IpV6Address)` |
+| `Port` | ✅ | `u16` in range 1–65535 |
+| `MacAddress` | ✅ | 6-byte MAC, normalised to lowercase colon-separated hex |
+| `MimeType` | ✅ | valid MIME type (e.g. `image/png`) |
+| `HttpStatusCode` | ✅ | `u16` in range 100–599 |
+| `ApiKey` | ✅ | non-empty; masked `Display` shows only last 4 chars |
 
 ---
 
@@ -139,7 +139,7 @@
 | `finance` | 9 | 9 | 0 |
 | `temporal` | 5 | 5 | 0 |
 | `geo` | 6 | 6 | 0 |
-| `net` | 10 | 0 | 10 |
+| `net` | 10 | 10 | 0 |
 | `measurement` | 10 | 0 | 10 |
 | `primitives` | 10 | 10 | 0 |
-| **Total** | **62** | **42** | **20** |
+| **Total** | **62** | **52** | **10** |

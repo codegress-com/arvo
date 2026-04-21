@@ -50,6 +50,9 @@ pub mod finance;
 #[cfg(feature = "geo")]
 pub mod geo;
 
+#[cfg(feature = "net")]
+pub mod net;
+
 #[cfg(feature = "identifiers")]
 pub mod identifiers;
 
