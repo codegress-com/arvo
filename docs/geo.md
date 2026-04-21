@@ -4,7 +4,7 @@ Feature flag: `geo`
 
 ```toml
 [dependencies]
-arvo = { version = "0.7", features = ["geo"] }
+arvo = { version = "0.8", features = ["geo"] }
 ```
 
 ---
