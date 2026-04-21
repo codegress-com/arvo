@@ -46,6 +46,8 @@ let email: EmailAddress = "user@example.com".try_into()?;
 | [docs/implementing.md](docs/implementing.md) | How to implement the `ValueObject` trait for custom types |
 | [docs/contact.md](docs/contact.md) | Reference for all `contact` module types |
 | [docs/finance.md](docs/finance.md) | Reference for all `finance` module types |
+| [docs/identifiers.md](docs/identifiers.md) | Reference for all `identifiers` module types |
+| [docs/primitives.md](docs/primitives.md) | Reference for all `primitives` module types |
 
 ---
 
@@ -53,7 +55,7 @@ let email: EmailAddress = "user@example.com".try_into()?;
 
 ```toml
 [dependencies]
-arvo = { version = "0.4", features = ["contact", "serde"] }
+arvo = { version = "0.5", features = ["contact", "serde"] }
 ```
 
 Enable only the modules you need — unused features add zero dependencies.
