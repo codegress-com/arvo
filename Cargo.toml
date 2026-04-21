@@ -22,6 +22,7 @@ contact = ["dep:once_cell", "dep:regex", "dep:url"]
 finance = ["dep:rust_decimal", "dep:chrono"]
 identifiers = []
 primitives = ["dep:rust_decimal", "dep:base64"]
+temporal = ["dep:chrono"]
 
 # Cross-cutting concerns can be combined with any module
 serde = ["dep:serde"]
@@ -33,6 +34,7 @@ full = [
     "finance",
     "identifiers",
     "primitives",
+    "temporal",
 ]
 
 [dependencies]

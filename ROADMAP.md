@@ -56,11 +56,11 @@
 
 | Type | Status | Notes |
 |---|---|---|
-| `UnixTimestamp` | ⬜ | non-negative `i64` seconds since epoch |
-| `BirthDate` | ⬜ | date in the past, not more than 150 years ago |
-| `ExpiryDate` | ⬜ | date strictly in the future |
-| `TimeRange` | ⬜ | start + end `DateTime`; `start < end` enforced |
-| `BusinessHours` | ⬜ | composite: weekday + open time + close time; open < close |
+| `UnixTimestamp` | ✅ | non-negative `i64` seconds since epoch |
+| `BirthDate` | ✅ | date in the past, not more than 150 years ago |
+| `ExpiryDate` | ✅ | date strictly in the future |
+| `TimeRange` | ✅ | start + end `DateTime`; `start < end` enforced |
+| `BusinessHours` | ✅ | composite: weekday + open time + close time; open < close |
 
 ---
 
@@ -137,9 +137,9 @@
 | `contact` | 5 | 5 | 0 |
 | `identifiers` | 7 | 7 | 0 |
 | `finance` | 9 | 9 | 0 |
-| `temporal` | 5 | 0 | 5 |
+| `temporal` | 5 | 5 | 0 |
 | `geo` | 6 | 0 | 6 |
 | `net` | 10 | 0 | 10 |
 | `measurement` | 10 | 0 | 10 |
 | `primitives` | 10 | 10 | 0 |
-| **Total** | **62** | **31** | **31** |
+| **Total** | **62** | **36** | **26** |
