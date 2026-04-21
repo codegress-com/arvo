@@ -117,6 +117,14 @@ impl PhoneNumber {
 }
 
 /// Displays the phone number in canonical E.164 format.
+impl TryFrom<PhoneNumberInput> for PhoneNumber {
+    type Error = ValidationError;
+
+    fn try_from(value: PhoneNumberInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for PhoneNumber {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.e164)

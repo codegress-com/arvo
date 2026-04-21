@@ -54,6 +54,14 @@ impl ValueObject for Probability {
     }
 }
 
+impl TryFrom<f64> for Probability {
+    type Error = ValidationError;
+
+    fn try_from(value: f64) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for Probability {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)

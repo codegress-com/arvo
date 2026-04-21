@@ -104,6 +104,14 @@ impl TimeRange {
     }
 }
 
+impl TryFrom<TimeRangeInput> for TimeRange {
+    type Error = ValidationError;
+
+    fn try_from(value: TimeRangeInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for TimeRange {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

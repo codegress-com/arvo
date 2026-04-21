@@ -105,6 +105,14 @@ impl BoundingBox {
     }
 }
 
+impl TryFrom<BoundingBoxInput> for BoundingBox {
+    type Error = ValidationError;
+
+    fn try_from(value: BoundingBoxInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for BoundingBox {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

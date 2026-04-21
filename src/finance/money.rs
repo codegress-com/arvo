@@ -117,6 +117,14 @@ impl Money {
     }
 }
 
+impl TryFrom<MoneyInput> for Money {
+    type Error = ValidationError;
+
+    fn try_from(value: MoneyInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for Money {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

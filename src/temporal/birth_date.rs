@@ -81,6 +81,14 @@ impl BirthDate {
     }
 }
 
+impl TryFrom<NaiveDate> for BirthDate {
+    type Error = ValidationError;
+
+    fn try_from(value: NaiveDate) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for BirthDate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)

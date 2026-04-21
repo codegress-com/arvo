@@ -130,6 +130,14 @@ impl PostalAddress {
 }
 
 /// Displays the address in a human-readable multi-line format.
+impl TryFrom<PostalAddressInput> for PostalAddress {
+    type Error = ValidationError;
+
+    fn try_from(value: PostalAddressInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for PostalAddress {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.formatted)

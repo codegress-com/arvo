@@ -77,6 +77,14 @@ impl std::fmt::Display for ApiKey {
     }
 }
 
+impl TryFrom<&str> for ApiKey {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new(value.to_owned())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

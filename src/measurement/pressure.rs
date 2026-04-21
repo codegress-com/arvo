@@ -95,6 +95,14 @@ impl Pressure {
     }
 }
 
+impl TryFrom<PressureInput> for Pressure {
+    type Error = ValidationError;
+
+    fn try_from(value: PressureInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for Pressure {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

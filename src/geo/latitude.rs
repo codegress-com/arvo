@@ -52,6 +52,14 @@ impl ValueObject for Latitude {
     }
 }
 
+impl TryFrom<f64> for Latitude {
+    type Error = ValidationError;
+
+    fn try_from(value: f64) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for Latitude {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:.6}", self.0)

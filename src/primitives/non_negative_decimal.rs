@@ -55,6 +55,14 @@ impl ValueObject for NonNegativeDecimal {
     }
 }
 
+impl TryFrom<Decimal> for NonNegativeDecimal {
+    type Error = ValidationError;
+
+    fn try_from(value: Decimal) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for NonNegativeDecimal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)

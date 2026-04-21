@@ -88,6 +88,14 @@ impl Power {
     }
 }
 
+impl TryFrom<PowerInput> for Power {
+    type Error = ValidationError;
+
+    fn try_from(value: PowerInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for Power {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

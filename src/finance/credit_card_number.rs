@@ -118,6 +118,14 @@ fn luhn_valid(digits: &str) -> bool {
     sum % 10 == 0
 }
 
+impl TryFrom<&str> for CreditCardNumber {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new(value.to_owned())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

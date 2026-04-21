@@ -54,6 +54,14 @@ impl ValueObject for PositiveInt {
     }
 }
 
+impl TryFrom<i64> for PositiveInt {
+    type Error = ValidationError;
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for PositiveInt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)

@@ -110,6 +110,14 @@ impl ExchangeRate {
     }
 }
 
+impl TryFrom<ExchangeRateInput> for ExchangeRate {
+    type Error = ValidationError;
+
+    fn try_from(value: ExchangeRateInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for ExchangeRate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

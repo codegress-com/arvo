@@ -90,6 +90,14 @@ impl Volume {
     }
 }
 
+impl TryFrom<VolumeInput> for Volume {
+    type Error = ValidationError;
+
+    fn try_from(value: VolumeInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for Volume {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

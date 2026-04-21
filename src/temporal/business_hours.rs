@@ -123,6 +123,14 @@ impl BusinessHours {
     }
 }
 
+impl TryFrom<BusinessHoursInput> for BusinessHours {
+    type Error = ValidationError;
+
+    fn try_from(value: BusinessHoursInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for BusinessHours {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

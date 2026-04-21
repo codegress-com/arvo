@@ -94,6 +94,14 @@ impl Area {
     }
 }
 
+impl TryFrom<AreaInput> for Area {
+    type Error = ValidationError;
+
+    fn try_from(value: AreaInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for Area {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

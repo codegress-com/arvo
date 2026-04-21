@@ -91,6 +91,14 @@ impl Frequency {
     }
 }
 
+impl TryFrom<FrequencyInput> for Frequency {
+    type Error = ValidationError;
+
+    fn try_from(value: FrequencyInput) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for Frequency {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)

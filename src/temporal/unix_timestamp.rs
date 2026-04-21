@@ -60,6 +60,14 @@ impl UnixTimestamp {
     }
 }
 
+impl TryFrom<i64> for UnixTimestamp {
+    type Error = ValidationError;
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl std::fmt::Display for UnixTimestamp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
