@@ -22,6 +22,7 @@ contact = ["dep:once_cell", "dep:regex", "dep:url"]
 finance = ["dep:rust_decimal", "dep:chrono"]
 identifiers = []
 primitives = ["dep:rust_decimal", "dep:base64"]
+temporal = ["dep:chrono"]
 
 # Cross-cutting concerns can be combined with any module
 serde = ["dep:serde"]
@@ -33,6 +34,7 @@ full = [
     "finance",
     "identifiers",
     "primitives",
+    "temporal",
 ]
 
 [dependencies]
@@ -40,7 +42,7 @@ thiserror = "2"
 once_cell = { version = "1", optional = true }
 regex = { version = "1", optional = true }
 rust_decimal = { version = "1.26", optional = true }
-chrono = { version = "0.4", optional = true, features = ["serde"] }
+chrono = { version = "0.4.23", optional = true, features = ["serde"] }
 uuid = { version = "1", optional = true, features = ["v4"] }
 ulid = { version = "1", optional = true }
 url = { version = "~2.4", optional = true }
