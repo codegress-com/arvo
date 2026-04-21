@@ -44,6 +44,9 @@ pub mod traits;
 #[cfg(feature = "contact")]
 pub mod contact;
 
+#[cfg(feature = "finance")]
+pub mod finance;
+
 #[cfg(feature = "identifiers")]
 pub mod identifiers;
 
