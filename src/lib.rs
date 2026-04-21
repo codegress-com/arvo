@@ -15,8 +15,9 @@
 //! arvo = { version = "0.9", features = ["contact", "finance"] }
 //! ```
 //!
-//! Available features: `contact`, `serde`, `full`.
-//! See [ROADMAP.md](https://github.com/codegress-com/arvo/blob/main/ROADMAP.md) for planned modules.
+//! Available features: `contact`, `finance`, `geo`, `identifiers`, `measurement`, `net`,
+//! `primitives`, `temporal`, `serde`, `full`.
+//! See [ROADMAP.md](https://github.com/codegress-com/arvo/blob/main/ROADMAP.md) for the full type list.
 //!
 //! ## Quick start
 //!
@@ -74,14 +75,49 @@ pub mod prelude {
     pub use crate::traits::ValueObject;
 
     #[cfg(feature = "contact")]
-    pub use crate::contact::{CountryCode, EmailAddress};
+    pub use crate::contact::{
+        CountryCode, EmailAddress, PhoneNumber, PhoneNumberInput, PostalAddress, PostalAddressInput,
+        Website, WebsiteInput,
+    };
+
+    #[cfg(feature = "finance")]
+    pub use crate::finance::{
+        Bic, CardExpiryDate, CreditCardNumber, CurrencyCode, ExchangeRate, ExchangeRateInput, Iban,
+        Money, MoneyInput, Percentage, VatNumber,
+    };
+
+    #[cfg(feature = "geo")]
+    pub use crate::geo::{
+        BoundingBox, BoundingBoxInput, Coordinate, CoordinateInput, CountryRegion, Latitude,
+        Longitude, TimeZone,
+    };
 
     #[cfg(feature = "identifiers")]
     pub use crate::identifiers::{Ean8, Ean13, Isbn10, Isbn13, Issn, Slug, Vin};
+
+    #[cfg(feature = "measurement")]
+    pub use crate::measurement::{
+        Area, AreaInput, AreaUnit, Energy, EnergyInput, EnergyUnit, Frequency, FrequencyInput,
+        FrequencyUnit, Length, LengthInput, LengthUnit, Power, PowerInput, PowerUnit, Pressure,
+        PressureInput, PressureUnit, Speed, SpeedInput, SpeedUnit, Temperature, TemperatureInput,
+        TemperatureUnit, Volume, VolumeInput, VolumeUnit, Weight, WeightInput, WeightUnit,
+    };
+
+    #[cfg(feature = "net")]
+    pub use crate::net::{
+        ApiKey, Domain, HttpStatusCode, IpAddress, IpV4Address, IpV6Address, MacAddress, MimeType,
+        Port, Url,
+    };
 
     #[cfg(feature = "primitives")]
     pub use crate::primitives::{
         Base64String, BoundedString, HexColor, Locale, NonEmptyString, NonNegativeDecimal,
         NonNegativeInt, PositiveDecimal, PositiveInt, Probability,
+    };
+
+    #[cfg(feature = "temporal")]
+    pub use crate::temporal::{
+        BirthDate, BusinessHours, BusinessHoursInput, ExpiryDate, TimeRange, TimeRangeInput,
+        UnixTimestamp,
     };
 }
