@@ -21,6 +21,7 @@ default = []
 contact = ["dep:once_cell", "dep:regex", "dep:url"]
 finance = ["dep:rust_decimal", "dep:chrono"]
 geo = []
+measurement = []
 net = ["dep:url"]
 identifiers = []
 primitives = ["dep:rust_decimal", "dep:base64"]
@@ -36,6 +37,7 @@ full = [
     "finance",
     "geo",
     "identifiers",
+    "measurement",
     "net",
     "primitives",
     "temporal",

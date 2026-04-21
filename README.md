@@ -47,6 +47,7 @@ let email: EmailAddress = "user@example.com".try_into()?;
 | [docs/contact.md](docs/contact.md) | Reference for all `contact` module types |
 | [docs/finance.md](docs/finance.md) | Reference for all `finance` module types |
 | [docs/geo.md](docs/geo.md) | Reference for all `geo` module types |
+| [docs/measurement.md](docs/measurement.md) | Reference for all `measurement` module types |
 | [docs/net.md](docs/net.md) | Reference for all `net` module types |
 | [docs/identifiers.md](docs/identifiers.md) | Reference for all `identifiers` module types |
 | [docs/primitives.md](docs/primitives.md) | Reference for all `primitives` module types |
@@ -72,6 +73,7 @@ Enable only the modules you need — unused features add zero dependencies.
 | `contact` | `EmailAddress`, `CountryCode`, `PhoneNumber`, `PostalAddress`, `Website` | `once_cell`, `regex`, `url` |
 | `finance` | `Money`, `CurrencyCode`, `Iban`, `Bic`, `VatNumber`, `Percentage`, `ExchangeRate`, `CreditCardNumber`, `CardExpiryDate` | `rust_decimal`, `chrono` |
 | `geo` | `Latitude`, `Longitude`, `Coordinate`, `BoundingBox`, `TimeZone`, `CountryRegion` | — |
+| `measurement` | `Length`, `Weight`, `Temperature`, `Volume`, `Area`, `Speed`, `Pressure`, `Energy`, `Power`, `Frequency` | — |
 | `net` | `Url`, `Domain`, `IpV4Address`, `IpV6Address`, `IpAddress`, `Port`, `MacAddress`, `MimeType`, `HttpStatusCode`, `ApiKey` | `url` |
 | `identifiers` | `Slug`, `Ean13`, `Ean8`, `Isbn13`, `Isbn10`, `Issn`, `Vin` | — |
 | `primitives` | `NonEmptyString`, `BoundedString`, `PositiveInt`, `NonNegativeInt`, `PositiveDecimal`, `NonNegativeDecimal`, `Probability`, `HexColor`, `Locale`, `Base64String` | `rust_decimal`, `base64` |
@@ -213,7 +215,7 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 | `temporal` | `UnixTimestamp`, `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | 5 | 5 / 5 ✅ |
 | `geo` | `Latitude`, `Longitude`, `Coordinate`, `BoundingBox`, `TimeZone`, `CountryRegion` | 6 | 6 / 6 ✅ |
 | `net` | `Url`, `Domain`, `IpV4Address`, `IpV6Address`, `IpAddress`, `Port`, `MacAddress`, `MimeType`, `HttpStatusCode`, `ApiKey` | 10 | 10 / 10 ✅ |
-| `measurement` | `Length`, `Weight`, `Temperature`, `Speed` ⚠️ needs unit conversion design | 10 | 0 / 10 |
+| `measurement` | `Length`, `Weight`, `Temperature`, `Volume`, `Area`, `Speed`, `Pressure`, `Energy`, `Power`, `Frequency` | 10 | 10 / 10 ✅ |
 | `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 10 | 10 / 10 ✅ |
 
 → Full details and design rationale in [ROADMAP.md](ROADMAP.md)
