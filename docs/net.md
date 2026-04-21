@@ -4,7 +4,7 @@ Feature flag: `net`
 
 ```toml
 [dependencies]
-arvo = { version = "0.8", features = ["net"] }
+arvo = { version = "0.9", features = ["net"] }
 ```
 
 ---

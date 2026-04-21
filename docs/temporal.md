@@ -4,7 +4,7 @@ Feature flag: `temporal`
 
 ```toml
 [dependencies]
-arvo = { version = "0.8", features = ["temporal"] }
+arvo = { version = "0.9", features = ["temporal"] }
 ```
 
 ---
