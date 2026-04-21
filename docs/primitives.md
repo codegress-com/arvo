@@ -4,7 +4,7 @@ Feature flag: `primitives`
 
 ```toml
 [dependencies]
-arvo = { version = "0.8", features = ["primitives"] }
+arvo = { version = "0.9", features = ["primitives"] }
 ```
 
 ---
