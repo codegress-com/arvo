@@ -4,7 +4,7 @@ Feature flag: `finance`
 
 ```toml
 [dependencies]
-arvo = { version = "0.5", features = ["finance"] }
+arvo = { version = "0.7", features = ["finance"] }
 ```
 
 ---
