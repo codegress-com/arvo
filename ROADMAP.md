@@ -68,12 +68,12 @@
 
 | Type | Status | Notes |
 |---|---|---|
-| `Latitude` | ⬜ | `f64` in range −90.0..=90.0 |
-| `Longitude` | ⬜ | `f64` in range −180.0..=180.0 |
-| `Coordinate` | ⬜ | composite: `Latitude` + `Longitude` |
-| `BoundingBox` | ⬜ | composite: SW `Coordinate` + NE `Coordinate` |
-| `TimeZone` | ⬜ | IANA timezone name (e.g. `Europe/Prague`) |
-| `CountryRegion` | ⬜ | ISO 3166-2 subdivision code (e.g. `CZ-PR`) |
+| `Latitude` | ✅ | `f64` in range −90.0..=90.0 |
+| `Longitude` | ✅ | `f64` in range −180.0..=180.0 |
+| `Coordinate` | ✅ | composite: `Latitude` + `Longitude` |
+| `BoundingBox` | ✅ | composite: SW `Coordinate` + NE `Coordinate` |
+| `TimeZone` | ✅ | IANA timezone name (e.g. `Europe/Prague`) |
+| `CountryRegion` | ✅ | ISO 3166-2 subdivision code (e.g. `CZ-PR`) |
 
 ---
 
@@ -138,8 +138,8 @@
 | `identifiers` | 7 | 7 | 0 |
 | `finance` | 9 | 9 | 0 |
 | `temporal` | 5 | 5 | 0 |
-| `geo` | 6 | 0 | 6 |
+| `geo` | 6 | 6 | 0 |
 | `net` | 10 | 0 | 10 |
 | `measurement` | 10 | 0 | 10 |
 | `primitives` | 10 | 10 | 0 |
-| **Total** | **62** | **36** | **26** |
+| **Total** | **62** | **42** | **20** |

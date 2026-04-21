@@ -46,6 +46,7 @@ let email: EmailAddress = "user@example.com".try_into()?;
 | [docs/implementing.md](docs/implementing.md) | How to implement the `ValueObject` trait for custom types |
 | [docs/contact.md](docs/contact.md) | Reference for all `contact` module types |
 | [docs/finance.md](docs/finance.md) | Reference for all `finance` module types |
+| [docs/geo.md](docs/geo.md) | Reference for all `geo` module types |
 | [docs/identifiers.md](docs/identifiers.md) | Reference for all `identifiers` module types |
 | [docs/primitives.md](docs/primitives.md) | Reference for all `primitives` module types |
 | [docs/temporal.md](docs/temporal.md) | Reference for all `temporal` module types |
@@ -69,6 +70,7 @@ Enable only the modules you need — unused features add zero dependencies.
 |:---|:---|:---|
 | `contact` | `EmailAddress`, `CountryCode`, `PhoneNumber`, `PostalAddress`, `Website` | `once_cell`, `regex`, `url` |
 | `finance` | `Money`, `CurrencyCode`, `Iban`, `Bic`, `VatNumber`, `Percentage`, `ExchangeRate`, `CreditCardNumber`, `CardExpiryDate` | `rust_decimal`, `chrono` |
+| `geo` | `Latitude`, `Longitude`, `Coordinate`, `BoundingBox`, `TimeZone`, `CountryRegion` | — |
 | `identifiers` | `Slug`, `Ean13`, `Ean8`, `Isbn13`, `Isbn10`, `Issn`, `Vin` | — |
 | `primitives` | `NonEmptyString`, `BoundedString`, `PositiveInt`, `NonNegativeInt`, `PositiveDecimal`, `NonNegativeDecimal`, `Probability`, `HexColor`, `Locale`, `Base64String` | `rust_decimal`, `base64` |
 | `temporal` | `UnixTimestamp`, `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | `chrono` |
@@ -207,7 +209,7 @@ let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 | `identifiers` | `Slug`, `Ean13`, `Isbn13`, `Vin` | 7 | 7 / 7 ✅ |
 | `finance` | `Money`, `CurrencyCode`, `Iban`, `Bic`, `VatNumber`, `Percentage`, `ExchangeRate`, `CreditCardNumber`, `CardExpiryDate` | 9 | 9 / 9 ✅ |
 | `temporal` | `UnixTimestamp`, `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | 5 | 5 / 5 ✅ |
-| `geo` | `Latitude`, `Longitude`, `Coordinate`, `BoundingBox`, `TimeZone` | 6 | 0 / 6 |
+| `geo` | `Latitude`, `Longitude`, `Coordinate`, `BoundingBox`, `TimeZone`, `CountryRegion` | 6 | 6 / 6 ✅ |
 | `net` | `Url`, `IpAddress`, `MacAddress`, `ApiKey`, `Port` | 10 | 0 / 10 |
 | `measurement` | `Length`, `Weight`, `Temperature`, `Speed` ⚠️ needs unit conversion design | 10 | 0 / 10 |
 | `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 10 | 10 / 10 ✅ |
