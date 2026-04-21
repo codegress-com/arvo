@@ -76,24 +76,33 @@ pub mod prelude {
 
     #[cfg(feature = "contact")]
     pub use crate::contact::{
-        CountryCode, EmailAddress, PhoneNumber, PhoneNumberInput, PostalAddress, PostalAddressInput,
-        Website, WebsiteInput,
+        CountryCode, CountryCodeInput, CountryCodeOutput, EmailAddress, EmailAddressInput,
+        EmailAddressOutput, PhoneNumber, PhoneNumberInput, PhoneNumberOutput, PostalAddress,
+        PostalAddressInput, PostalAddressOutput, Website, WebsiteInput, WebsiteOutput,
     };
 
     #[cfg(feature = "finance")]
     pub use crate::finance::{
-        Bic, CardExpiryDate, CreditCardNumber, CurrencyCode, ExchangeRate, ExchangeRateInput, Iban,
-        Money, MoneyInput, Percentage, VatNumber,
+        Bic, BicInput, BicOutput, CardExpiryDate, CardExpiryDateInput, CardExpiryDateOutput,
+        CreditCardNumber, CreditCardNumberInput, CreditCardNumberOutput, CurrencyCode,
+        CurrencyCodeInput, CurrencyCodeOutput, ExchangeRate, ExchangeRateInput, ExchangeRateOutput,
+        Iban, IbanInput, IbanOutput, Money, MoneyInput, MoneyOutput, Percentage, PercentageInput,
+        PercentageOutput, VatNumber, VatNumberInput, VatNumberOutput,
     };
 
     #[cfg(feature = "geo")]
     pub use crate::geo::{
-        BoundingBox, BoundingBoxInput, Coordinate, CoordinateInput, CountryRegion, Latitude,
-        Longitude, TimeZone,
+        BoundingBox, BoundingBoxInput, Coordinate, CoordinateInput, CountryRegion,
+        CountryRegionInput, CountryRegionOutput, Latitude, LatitudeInput, LatitudeOutput,
+        Longitude, LongitudeInput, LongitudeOutput, TimeZone, TimeZoneInput, TimeZoneOutput,
     };
 
     #[cfg(feature = "identifiers")]
-    pub use crate::identifiers::{Ean8, Ean13, Isbn10, Isbn13, Issn, Slug, Vin};
+    pub use crate::identifiers::{
+        Ean8, Ean8Input, Ean8Output, Ean13, Ean13Input, Ean13Output, Isbn10, Isbn10Input,
+        Isbn10Output, Isbn13, Isbn13Input, Isbn13Output, Issn, IssnInput, IssnOutput, Slug,
+        SlugInput, SlugOutput, Vin, VinInput, VinOutput,
+    };
 
     #[cfg(feature = "measurement")]
     pub use crate::measurement::{
@@ -105,19 +114,27 @@ pub mod prelude {
 
     #[cfg(feature = "net")]
     pub use crate::net::{
-        ApiKey, Domain, HttpStatusCode, IpAddress, IpV4Address, IpV6Address, MacAddress, MimeType,
-        Port, Url,
+        ApiKey, ApiKeyInput, ApiKeyOutput, Domain, DomainInput, DomainOutput, HttpStatusCode,
+        HttpStatusCodeInput, HttpStatusCodeOutput, IpAddress, IpAddressInput, IpAddressOutput,
+        IpV4Address, IpV4AddressInput, IpV4AddressOutput, IpV6Address, IpV6AddressInput,
+        IpV6AddressOutput, MacAddress, MacAddressInput, MacAddressOutput, MimeType, MimeTypeInput,
+        MimeTypeOutput, Port, PortInput, PortOutput, Url, UrlInput, UrlOutput,
     };
 
     #[cfg(feature = "primitives")]
     pub use crate::primitives::{
-        Base64String, BoundedString, HexColor, Locale, NonEmptyString, NonNegativeDecimal,
-        NonNegativeInt, PositiveDecimal, PositiveInt, Probability,
+        Base64String, Base64StringInput, Base64StringOutput, BoundedString, HexColor, HexColorInput,
+        HexColorOutput, Locale, LocaleInput, LocaleOutput, NonEmptyString, NonEmptyStringInput,
+        NonEmptyStringOutput, NonNegativeDecimal, NonNegativeDecimalInput, NonNegativeDecimalOutput,
+        NonNegativeInt, NonNegativeIntInput, NonNegativeIntOutput, PositiveDecimal,
+        PositiveDecimalInput, PositiveDecimalOutput, PositiveInt, PositiveIntInput,
+        PositiveIntOutput, Probability, ProbabilityInput, ProbabilityOutput,
     };
 
     #[cfg(feature = "temporal")]
     pub use crate::temporal::{
-        BirthDate, BusinessHours, BusinessHoursInput, ExpiryDate, TimeRange, TimeRangeInput,
-        UnixTimestamp,
+        BirthDate, BirthDateInput, BirthDateOutput, BusinessHours, BusinessHoursInput,
+        BusinessHoursOutput, ExpiryDate, ExpiryDateInput, ExpiryDateOutput, TimeRange,
+        TimeRangeInput, TimeRangeOutput, UnixTimestamp, UnixTimestampInput, UnixTimestampOutput,
     };
 }
