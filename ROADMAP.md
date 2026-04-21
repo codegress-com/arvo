@@ -100,16 +100,16 @@
 
 | Type | Status | Notes |
 |---|---|---|
-| `Length` | ⬜ | non-negative `f64` with unit (m, cm, mm, in, ft) |
-| `Weight` | ⬜ | non-negative `f64` with unit (kg, g, lb, oz) |
-| `Temperature` | ⬜ | `f64` with unit (°C, °F, K); Kelvin must be ≥ 0 |
-| `Volume` | ⬜ | non-negative `f64` with unit (l, ml, m³, fl oz) |
-| `Area` | ⬜ | non-negative `f64` with unit (m², cm², ft²) |
-| `Speed` | ⬜ | non-negative `f64` with unit (m/s, km/h, mph) |
-| `Pressure` | ⬜ | non-negative `f64` with unit (Pa, bar, psi) |
-| `Energy` | ⬜ | non-negative `f64` with unit (J, kWh, cal) |
-| `Power` | ⬜ | non-negative `f64` with unit (W, kW, hp) |
-| `Frequency` | ⬜ | positive `f64` with unit (Hz, kHz, MHz) |
+| `Length` | ✅ | non-negative `f64` with unit (mm, cm, m, km, in, ft) |
+| `Weight` | ✅ | non-negative `f64` with unit (mg, g, kg, t, oz, lb) |
+| `Temperature` | ✅ | `f64` with unit (°C, °F, K); validated against absolute zero |
+| `Volume` | ✅ | non-negative `f64` with unit (ml, l, m³, fl oz, gal) |
+| `Area` | ✅ | non-negative `f64` with unit (mm², cm², m², km², in², ft², ha) |
+| `Speed` | ✅ | non-negative `f64` with unit (m/s, km/h, mph, kn) |
+| `Pressure` | ✅ | non-negative `f64` with unit (Pa, kPa, MPa, bar, psi, atm) |
+| `Energy` | ✅ | non-negative `f64` with unit (J, kJ, MJ, kWh, cal, kcal) |
+| `Power` | ✅ | non-negative `f64` with unit (W, kW, MW, hp) |
+| `Frequency` | ✅ | positive `f64` with unit (Hz, kHz, MHz, GHz) |
 
 ---
 
@@ -140,6 +140,6 @@
 | `temporal` | 5 | 5 | 0 |
 | `geo` | 6 | 6 | 0 |
 | `net` | 10 | 10 | 0 |
-| `measurement` | 10 | 0 | 10 |
+| `measurement` | 10 | 10 | 0 |
 | `primitives` | 10 | 10 | 0 |
-| **Total** | **62** | **52** | **10** |
+| **Total** | **62** | **62** | **0** |
