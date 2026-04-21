@@ -47,6 +47,9 @@ pub mod contact;
 #[cfg(feature = "finance")]
 pub mod finance;
 
+#[cfg(feature = "geo")]
+pub mod geo;
+
 #[cfg(feature = "identifiers")]
 pub mod identifiers;
 

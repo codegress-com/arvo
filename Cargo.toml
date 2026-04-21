@@ -20,6 +20,7 @@ default = []
 # Domain modules — opt-in so you only pay for what you use
 contact = ["dep:once_cell", "dep:regex", "dep:url"]
 finance = ["dep:rust_decimal", "dep:chrono"]
+geo = []
 identifiers = []
 primitives = ["dep:rust_decimal", "dep:base64"]
 temporal = ["dep:chrono"]
@@ -32,6 +33,7 @@ sql = ["dep:sqlx"]
 full = [
     "contact",
     "finance",
+    "geo",
     "identifiers",
     "primitives",
     "temporal",
