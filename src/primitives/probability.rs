@@ -110,4 +110,20 @@ mod tests {
     fn rejects_infinity() {
         assert!(Probability::new(f64::INFINITY).is_err());
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let p = Probability::try_from("0.5").unwrap();
+        assert_eq!(*p.value(), 0.5);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(Probability::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_out_of_range() {
+        assert!(Probability::try_from("1.1").is_err());
+    }
 }

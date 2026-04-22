@@ -88,4 +88,20 @@ mod tests {
     fn rejects_negative() {
         assert!(NonNegativeInt::new(-1).is_err());
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let v = NonNegativeInt::try_from("0").unwrap();
+        assert_eq!(*v.value(), 0);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(NonNegativeInt::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_negative() {
+        assert!(NonNegativeInt::try_from("-1").is_err());
+    }
 }

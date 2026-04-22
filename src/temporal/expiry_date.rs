@@ -123,4 +123,20 @@ mod tests {
         let d = ExpiryDate::new(future_date()).unwrap();
         assert_eq!(d.into_inner(), future_date());
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let d = ExpiryDate::try_from("2030-12-31").unwrap();
+        assert_eq!(d.to_string(), "2030-12-31");
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(ExpiryDate::try_from("31-12-2030").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_past_date() {
+        assert!(ExpiryDate::try_from("2020-01-01").is_err());
+    }
 }

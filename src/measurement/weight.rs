@@ -166,4 +166,20 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let w = Weight::try_from("70 kg").unwrap();
+        assert_eq!(w.value(), "70 kg");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Weight::try_from("70").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Weight::try_from("70 stone").is_err());
+    }
 }

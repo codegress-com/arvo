@@ -132,4 +132,20 @@ mod tests {
         let port = Port::new(3000).unwrap();
         assert_eq!(port.into_inner(), 3000);
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let p = Port::try_from("8080").unwrap();
+        assert_eq!(*p.value(), 8080);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(Port::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_zero() {
+        assert!(Port::try_from("0").is_err());
+    }
 }

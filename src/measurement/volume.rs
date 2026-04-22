@@ -161,4 +161,20 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let v = Volume::try_from("1.5 l").unwrap();
+        assert_eq!(v.value(), "1.5 l");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Volume::try_from("1.5").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Volume::try_from("1.5 cups").is_err());
+    }
 }

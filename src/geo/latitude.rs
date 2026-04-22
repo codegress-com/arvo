@@ -111,4 +111,20 @@ mod tests {
         let lat = Latitude::new(51.5074).unwrap();
         assert_eq!(lat.into_inner(), 51.5074);
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let lat = Latitude::try_from("48.8588").unwrap();
+        assert_eq!(*lat.value(), 48.8588);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(Latitude::try_from("not_a_number").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_out_of_range() {
+        assert!(Latitude::try_from("91.0").is_err());
+    }
 }

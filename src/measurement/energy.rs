@@ -164,4 +164,20 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let e = Energy::try_from("1.5 kJ").unwrap();
+        assert_eq!(e.value(), "1.5 kJ");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Energy::try_from("1.5").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Energy::try_from("1.5 BTU").is_err());
+    }
 }

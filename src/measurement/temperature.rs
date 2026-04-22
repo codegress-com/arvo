@@ -209,4 +209,20 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let t = Temperature::try_from("100 °C").unwrap();
+        assert_eq!(t.value(), "100 °C");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Temperature::try_from("100").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_below_absolute_zero() {
+        assert!(Temperature::try_from("-500 K").is_err());
+    }
 }

@@ -233,4 +233,21 @@ mod tests {
         .unwrap();
         assert_eq!(bbox.to_string(), bbox.value());
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let bbox = BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
+        assert!(bbox.value().starts_with("SW:"));
+        assert!(bbox.value().contains("NE:"));
+    }
+
+    #[test]
+    fn try_from_rejects_missing_prefix() {
+        assert!(BoundingBox::try_from("48.0, 14.0 / 51.0, 18.0").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_sw_north_of_ne() {
+        assert!(BoundingBox::try_from("SW: 52.000000, 14.000000 / NE: 51.000000, 18.000000").is_err());
+    }
 }

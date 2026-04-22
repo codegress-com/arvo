@@ -90,4 +90,20 @@ mod tests {
     fn rejects_negative() {
         assert!(PositiveDecimal::new(Decimal::from_str("-1").unwrap()).is_err());
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let v = PositiveDecimal::try_from("3.14").unwrap();
+        assert_eq!(v.value().to_string(), "3.14");
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(PositiveDecimal::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_zero() {
+        assert!(PositiveDecimal::try_from("0").is_err());
+    }
 }

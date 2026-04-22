@@ -167,4 +167,20 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let a = Area::try_from("1.5 m²").unwrap();
+        assert_eq!(a.value(), "1.5 m²");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Area::try_from("1.5").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Area::try_from("1.5 acres").is_err());
+    }
 }

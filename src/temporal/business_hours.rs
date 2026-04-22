@@ -297,4 +297,20 @@ mod tests {
         let h = BusinessHours::new(input.clone()).unwrap();
         assert_eq!(h.into_inner(), input);
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let h = BusinessHours::try_from("Mon 09:00–17:00").unwrap();
+        assert_eq!(h.value(), "Mon 09:00–17:00");
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_day() {
+        assert!(BusinessHours::try_from("Xyz 09:00–17:00").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_close_before_open() {
+        assert!(BusinessHours::try_from("Mon 17:00–09:00").is_err());
+    }
 }

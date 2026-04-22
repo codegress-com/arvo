@@ -161,4 +161,20 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let f = Frequency::try_from("2.4 GHz").unwrap();
+        assert_eq!(f.value(), "2.4 GHz");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Frequency::try_from("2.4").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Frequency::try_from("2.4 THz").is_err());
+    }
 }

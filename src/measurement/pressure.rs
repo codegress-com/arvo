@@ -167,4 +167,20 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let p = Pressure::try_from("101.325 kPa").unwrap();
+        assert_eq!(p.value(), "101.325 kPa");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Pressure::try_from("101").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Pressure::try_from("1.0 hg").is_err());
+    }
 }

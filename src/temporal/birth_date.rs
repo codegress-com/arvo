@@ -150,4 +150,20 @@ mod tests {
         let d = BirthDate::new(past_date()).unwrap();
         assert_eq!(d.into_inner(), past_date());
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let d = BirthDate::try_from("1990-06-15").unwrap();
+        assert_eq!(d.value().to_string(), "1990-06-15");
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(BirthDate::try_from("15-06-1990").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_future_date() {
+        assert!(BirthDate::try_from("2099-01-01").is_err());
+    }
 }

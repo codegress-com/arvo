@@ -138,4 +138,20 @@ mod tests {
         let code = HttpStatusCode::new(201).unwrap();
         assert_eq!(code.into_inner(), 201);
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let c = HttpStatusCode::try_from("200").unwrap();
+        assert_eq!(*c.value(), 200);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(HttpStatusCode::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_out_of_range() {
+        assert!(HttpStatusCode::try_from("99").is_err());
+    }
 }

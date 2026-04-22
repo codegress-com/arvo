@@ -181,4 +181,20 @@ mod tests {
             assert!(Length::new(LengthInput { value: 1.0, unit }).is_ok());
         }
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let l = Length::try_from("1.5 km").unwrap();
+        assert_eq!(l.value(), "1.5 km");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Length::try_from("1.5").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Length::try_from("1.5 parsec").is_err());
+    }
 }

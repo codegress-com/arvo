@@ -260,4 +260,20 @@ mod tests {
         let r = TimeRange::new(input.clone()).unwrap();
         assert_eq!(r.into_inner(), input);
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let r = TimeRange::try_from("2025-01-01 10:00:00 UTC / 2025-01-01 12:00:00 UTC").unwrap();
+        assert_eq!(r.duration().num_hours(), 2);
+    }
+
+    #[test]
+    fn try_from_rejects_no_separator() {
+        assert!(TimeRange::try_from("2025-01-01T10:00:00Z").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_end_before_start() {
+        assert!(TimeRange::try_from("2025-01-01 12:00:00 UTC / 2025-01-01 10:00:00 UTC").is_err());
+    }
 }

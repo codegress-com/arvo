@@ -234,4 +234,20 @@ mod tests {
         .unwrap();
         assert_eq!(r.to_string(), r.value().to_owned());
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let r = ExchangeRate::try_from("EUR/USD 1.0850").unwrap();
+        assert_eq!(r.value(), "EUR/USD 1.0850");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(ExchangeRate::try_from("EURUSD1.0850").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_missing_slash() {
+        assert!(ExchangeRate::try_from("EURUSD 1.0850").is_err());
+    }
 }

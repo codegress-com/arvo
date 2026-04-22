@@ -119,4 +119,20 @@ mod tests {
         let ts = UnixTimestamp::new(1_000).unwrap();
         assert_eq!(ts.to_string(), "1000");
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let ts = UnixTimestamp::try_from("1700000000").unwrap();
+        assert_eq!(*ts.value(), 1_700_000_000);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(UnixTimestamp::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_negative() {
+        assert!(UnixTimestamp::try_from("-1").is_err());
+    }
 }

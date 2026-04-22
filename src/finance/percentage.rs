@@ -132,4 +132,20 @@ mod tests {
         let p = Percentage::new(33.3).unwrap();
         assert_eq!(p.into_inner(), 33.3);
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let p = Percentage::try_from("42.5").unwrap();
+        assert_eq!(*p.value(), 42.5);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(Percentage::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_out_of_range() {
+        assert!(Percentage::try_from("101.0").is_err());
+    }
 }

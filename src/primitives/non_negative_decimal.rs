@@ -91,4 +91,20 @@ mod tests {
     fn rejects_negative() {
         assert!(NonNegativeDecimal::new(Decimal::from_str("-0.01").unwrap()).is_err());
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let v = NonNegativeDecimal::try_from("0.00").unwrap();
+        assert_eq!(v.value().to_string(), "0.00");
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(NonNegativeDecimal::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_negative() {
+        assert!(NonNegativeDecimal::try_from("-1").is_err());
+    }
 }

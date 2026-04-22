@@ -132,4 +132,20 @@ mod tests {
         assert_eq!(*inner.lat.value(), 48.858844);
         assert_eq!(*inner.lng.value(), 2.294351);
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let c = Coordinate::try_from("48.858844, 2.294351").unwrap();
+        assert_eq!(c.value(), "48.858844, 2.294351");
+    }
+
+    #[test]
+    fn try_from_rejects_no_comma_separator() {
+        assert!(Coordinate::try_from("48.858844 2.294351").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_lat() {
+        assert!(Coordinate::try_from("91.0, 0.0").is_err());
+    }
 }

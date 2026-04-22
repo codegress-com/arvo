@@ -158,4 +158,20 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let s = Speed::try_from("120 km/h").unwrap();
+        assert_eq!(s.value(), "120 km/h");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Speed::try_from("120").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Speed::try_from("120 warp").is_err());
+    }
 }

@@ -256,4 +256,20 @@ mod tests {
         let m = Money::new(input.clone()).unwrap();
         assert_eq!(m.into_inner(), input);
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let m = Money::try_from("10.50 EUR").unwrap();
+        assert_eq!(m.value(), "10.50 EUR");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Money::try_from("10.50EUR").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_currency() {
+        assert!(Money::try_from("10.50 INVALID").is_err());
+    }
 }

@@ -111,4 +111,20 @@ mod tests {
         let lng = Longitude::new(-0.1278).unwrap();
         assert_eq!(lng.into_inner(), -0.1278);
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let lng = Longitude::try_from("2.294351").unwrap();
+        assert_eq!(*lng.value(), 2.294351);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(Longitude::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_out_of_range() {
+        assert!(Longitude::try_from("181.0").is_err());
+    }
 }

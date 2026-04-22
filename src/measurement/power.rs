@@ -158,4 +158,20 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let p = Power::try_from("3.7 kW").unwrap();
+        assert_eq!(p.value(), "3.7 kW");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Power::try_from("3.7").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Power::try_from("3.7 CVs").is_err());
+    }
 }

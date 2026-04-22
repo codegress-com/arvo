@@ -94,4 +94,20 @@ mod tests {
     fn rejects_negative() {
         assert!(PositiveInt::new(-1).is_err());
     }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let v = PositiveInt::try_from("42").unwrap();
+        assert_eq!(*v.value(), 42);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(PositiveInt::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_zero() {
+        assert!(PositiveInt::try_from("0").is_err());
+    }
 }
