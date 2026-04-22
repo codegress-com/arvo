@@ -132,8 +132,7 @@ pub struct PhoneNumberInput {
 | `number: "123456789012345"` | `ValidationError::InvalidFormat` (too long, max 14 digits) |
 
 > **Serde:** serialises as a JSON object `{ "country_code": "CZ", "number": "123456789" }` (the input struct).  
-> **SQLx:** not supported — the canonical E.164 string cannot be unambiguously decoded back to a structured `PhoneNumberInput`.  
-> **TryFrom\<&str\>:** not implemented for the same reason.
+> **TryFrom\<&str\>:** not implemented — the E.164 canonical string cannot be unambiguously decoded back to structured `PhoneNumberInput`.
 
 ---
 
@@ -233,5 +232,4 @@ pub struct PostalAddressInput {
 | `zip` | `""` or whitespace | `ValidationError::Empty` |
 
 > **Serde:** serialises as a JSON object matching `PostalAddressInput` (the input struct).  
-> **SQLx:** not supported — the multi-line formatted string cannot be unambiguously decoded back to structured fields.  
-> **TryFrom\<&str\>:** not implemented for the same reason.
+> **TryFrom\<&str\>:** not implemented — the formatted multi-line string cannot be unambiguously decoded back to structured fields.

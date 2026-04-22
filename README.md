@@ -32,10 +32,11 @@ let email: EmailAddress = "user@example.com".try_into()?;
 - [Installation](#installation)
 - [Feature flags](#feature-flags)
 - [Quick start](#quick-start)
-- [The `ValueObject` trait](#the-valueobject-trait)
+- [The trait hierarchy](#the-trait-hierarchy)
 - [Error handling](#error-handling)
+- [Parsing from strings](#parsing-from-strings)
 - [Serde support](#serde-support)
-- [SQL support](#sql-support)
+- [Database / ORM integration](#database--orm-integration)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 
@@ -44,7 +45,7 @@ let email: EmailAddress = "user@example.com".try_into()?;
 | Document | Description |
 |---|---|
 | [docs/value-objects.md](docs/value-objects.md) | What value objects are, simple vs composite, normalisation |
-| [docs/implementing.md](docs/implementing.md) | How to implement the `ValueObject` trait for custom types |
+| [docs/implementing.md](docs/implementing.md) | How to implement the traits for custom types |
 | [docs/contact.md](docs/contact.md) | Reference for all `contact` module types |
 | [docs/finance.md](docs/finance.md) | Reference for all `finance` module types |
 | [docs/geo.md](docs/geo.md) | Reference for all `geo` module types |
@@ -60,7 +61,7 @@ let email: EmailAddress = "user@example.com".try_into()?;
 
 ```toml
 [dependencies]
-arvo = { version = "0.9", features = ["contact", "serde"] }
+arvo = { version = "1.0", features = ["contact", "serde"] }
 ```
 
 Enable only the modules you need — unused features add zero dependencies.
@@ -79,8 +80,7 @@ Enable only the modules you need — unused features add zero dependencies.
 | `identifiers` | `Slug`, `Ean13`, `Ean8`, `Isbn13`, `Isbn10`, `Issn`, `Vin` | — |
 | `primitives` | `NonEmptyString`, `BoundedString`, `PositiveInt`, `NonNegativeInt`, `PositiveDecimal`, `NonNegativeDecimal`, `Probability`, `HexColor`, `Locale`, `Base64String` | `rust_decimal`, `base64` |
 | `temporal` | `UnixTimestamp`, `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | `chrono` |
-| `serde` | `Serialize` / `Deserialize` on all types | `serde` |
-| `sql` | `sqlx::Type` + `Encode` + `Decode` for PostgreSQL on all types | `sqlx` |
+| `serde` | `Serialize` / `Deserialize` on all types — deserialisation validates | `serde` |
 | `full` | All domain modules | all of the above |
 
 > **Tip:** `serde` and `full` are orthogonal — combine them freely:
@@ -106,7 +106,7 @@ let email: EmailAddress = "hello@example.com".try_into()?;
 let country = CountryCode::new("cz".into())?;
 assert_eq!(country.value(), "CZ");
 
-// Composite value object — structured input, canonical E.164 output
+// Composite value object — structured input, multiple accessors
 let phone = PhoneNumber::new(PhoneNumberInput {
     country_code: CountryCode::new("CZ".into())?,
     number: "123 456 789".into(),   // formatting stripped automatically
@@ -121,48 +121,48 @@ println!("{err}");  // 'not-an-email' is not a valid EmailAddress
 
 ---
 
-## The `ValueObject` trait
+## The trait hierarchy
 
-Every type in arvo implements the same core interface:
+arvo uses two traits:
 
 ```rust,ignore
+// Base trait — all value objects
 pub trait ValueObject: Sized + Clone + PartialEq {
-    /// What `new()` accepts — raw primitive for simple types,
-    /// a dedicated input struct for composites.
     type Input;
-
-    /// What `value()` returns — same as `Input` for simple types,
-    /// canonical representation (e.g. E.164 string) for composites.
-    type Output: ?Sized;
-
     type Error: std::error::Error;
 
-    /// Only way to construct — validates and normalises the input.
     fn new(value: Self::Input) -> Result<Self, Self::Error>;
-
-    /// Returns the validated output value.
-    fn value(&self) -> &Self::Output;
-
-    /// Consumes and returns the original input.
     fn into_inner(self) -> Self::Input;
+}
+
+// Subtrait — simple single-primitive newtypes only
+pub trait PrimitiveValue: ValueObject {
+    type Primitive: ?Sized;
+    fn value(&self) -> &Self::Primitive;
 }
 ```
 
-**Simple type** — `Input` and `Output` are the same (`String`):
+**Simple types** implement both — `value()` returns the inner primitive:
 ```rust,ignore
 let email = EmailAddress::new("user@example.com".into())?;
 email.value()       // &String → "user@example.com"
 email.into_inner()  // String  → "user@example.com"
 ```
 
-**Composite type** — `Input` is a struct, `Output` is canonical string:
+**Composite types** implement only `ValueObject` — data is accessed through dedicated methods:
 ```rust,ignore
 let phone = PhoneNumber::new(PhoneNumberInput { country_code, number })?;
-phone.value()       // &String → "+420123456789"  (E.164)
-phone.into_inner()  // PhoneNumberInput { country_code, number }
+phone.value()        // &str → "+420123456789"  (inherent method, not trait)
+phone.calling_code() // &str → "+420"
+phone.into_inner()   // PhoneNumberInput { country_code, number }
 ```
 
-You can implement it for your own domain types using the provided implementations as a reference.
+Use `PrimitiveValue` as a generic bound when you need access to the inner value:
+```rust,ignore
+fn print_value<T: PrimitiveValue<Primitive = str>>(v: &T) {
+    println!("{}", v.value());
+}
+```
 
 ---
 
@@ -216,13 +216,12 @@ Parsing errors return `ValidationError` just like `::new()`.
 
 ## Serde support
 
-Enable the `serde` feature. All types serialize as their raw primitive and **deserialisation validates** — invalid values are rejected at parse time, not after:
+Enable the `serde` feature. All types serialize as their raw primitive and **deserialisation validates** — invalid values are rejected at parse time:
 
 ```rust,ignore
 use arvo::contact::EmailAddress;
 
 let email = EmailAddress::new("user@example.com".into())?;
-
 let json = serde_json::to_string(&email)?;
 // → "\"user@example.com\""
 
@@ -234,47 +233,43 @@ let err: Result<EmailAddress, _> = serde_json::from_str(r#""not-an-email""#);
 assert!(err.is_err());
 ```
 
-Composite types (`PostalAddress`) serialise as their structured `Input` type (JSON object).  
-`PhoneNumber` and `PostalAddress` do not support `TryFrom<&str>`, so no canonical-string round-trip is attempted.
+Composite types (`PostalAddress`) serialise as their structured `Input` type (JSON object).
 
 ---
 
-## SQL support
+## Database / ORM integration
 
-Enable the `sql` feature. All types implement `sqlx::Type`, `sqlx::Encode`, and `sqlx::Decode` for PostgreSQL:
+arvo intentionally has no database dependency. Integrate using the accessors arvo provides — this works with any ORM and enables multi-column storage for composite types:
 
-```toml
-arvo = { version = "0.9", features = ["finance", "sql"] }
-```
-
+**Raw sqlx — simple types:**
 ```rust,ignore
-// Use arvo types directly in sqlx queries
-let money: Money = sqlx::query_scalar("SELECT price FROM products WHERE id = $1")
-    .bind(id)
-    .fetch_one(&pool)
-    .await?;
+// Bind — extract the primitive
+query.bind(email.value())
+query.bind(country.value())
 
-// Bind arvo types as query parameters
-sqlx::query("INSERT INTO orders (amount) VALUES ($1)")
-    .bind(Money::new(MoneyInput { amount: "9.99".parse()?, currency })?)
-    .execute(&pool)
-    .await?;
+// Read back — construct via new()
+let s: String = row.get("email");
+let email = EmailAddress::new(s)?;
 ```
 
-**Storage mapping:**
+**SeaORM / Diesel — composite types as multiple columns:**
+```rust,ignore
+// Define your own entity with individual columns
+#[derive(DeriveEntityModel)]
+pub struct Model {
+    pub street: String, pub city: String,
+    pub zip: String,    pub country: String,
+}
 
-| Type category | PostgreSQL type |
-|:---|:---|
-| `String`-based newtypes (`EmailAddress`, `Iban`, `Slug`, …) | `TEXT` |
-| `f64` newtypes (`Latitude`, `Longitude`, `Percentage`, …) | `FLOAT8` |
-| `i64` newtypes (`PositiveInt`, `UnixTimestamp`, …) | `INT8` |
-| `Decimal` newtypes (`PositiveDecimal`, `NonNegativeDecimal`) | `NUMERIC` |
-| `NaiveDate` newtypes (`BirthDate`, `ExpiryDate`) | `DATE` |
-| `Port`, `HttpStatusCode` (u16) | `INT4` |
-| Composite types (`Money`, `Coordinate`, `Length`, …) | `TEXT` (canonical string) |
-
-> **Note:** `PhoneNumber` and `PostalAddress` do not implement sqlx traits —
-> their canonical strings cannot be unambiguously decoded back to a structured value.
+// Convert via into_inner()
+impl From<PostalAddress> for Model {
+    fn from(addr: PostalAddress) -> Self {
+        let i = addr.into_inner();
+        Model { street: i.street, city: i.city,
+                zip: i.zip, country: i.country.into_inner() }
+    }
+}
+```
 
 ---
 
@@ -294,6 +289,17 @@ sqlx::query("INSERT INTO orders (amount) VALUES ($1)")
 | `primitives` | `NonEmptyString`, `BoundedString`, `Locale`, `HexColor` | 10 | 10 / 10 ✅ |
 
 → Full details and design rationale in [ROADMAP.md](ROADMAP.md)
+
+---
+
+## Migration from 0.x to 1.0
+
+| What changed | Migration |
+|---|---|
+| `ValueObject::value()` moved to `PrimitiveValue` | Change `T: ValueObject` to `T: PrimitiveValue` if you call `.value()` generically |
+| `type Output` removed from `ValueObject` | Replace `<T as ValueObject>::Output` with the concrete type |
+| `XxxOutput` type aliases removed | Replace `EmailAddressOutput` with `String`, `PortOutput` with `u16`, etc. |
+| `sql` feature removed | Use `.value()` / `.into_inner()` to bind primitives; implement sqlx traits yourself if needed |
 
 ---
 

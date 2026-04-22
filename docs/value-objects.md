@@ -18,45 +18,61 @@ fn send_email(address: EmailAddress) { /* always valid */ }
 
 ### Simple value objects
 
-A simple VO wraps a single raw primitive. `Input` and `Output` are the same type.
+A simple VO wraps a single raw primitive. Implements both `ValueObject` and `PrimitiveValue`.
 
 ```
 "User@Example.COM"  →  EmailAddress("user@example.com")
        ↑                          ↑
-     Input                      Output (&String)
+     Input                  PrimitiveValue::value() → &String
 ```
 
-Examples: `EmailAddress`, `CountryCode`.
+Examples: `EmailAddress`, `CountryCode`, `Latitude`, `Port`.
 
 ### Composite value objects
 
-A composite VO is constructed from multiple typed inputs and returns a canonical representation.
+A composite VO is constructed from multiple typed inputs and exposes data through dedicated accessor methods. Implements only `ValueObject`.
 
 ```
 PhoneNumberInput { country_code: "CZ", number: "123456789" }
        ↓
 PhoneNumber { e164: "+420123456789" }
        ↓
-value() → &String → "+420123456789"
+value()          → &str → "+420123456789"  (inherent method)
+calling_code()   → &str → "+420"
+number()         → &str → "123456789"
+country_code()   → &CountryCode
 ```
 
-Examples: `PhoneNumber`.
+Examples: `PhoneNumber`, `Money`, `PostalAddress`.
 
-## The `ValueObject` trait
-
-All types implement the same interface:
+## The trait hierarchy
 
 ```rust,ignore
+// Base trait — all value objects
 pub trait ValueObject: Sized + Clone + PartialEq {
-    type Input;           // what new() accepts
-    type Output: ?Sized;  // what value() returns
+    type Input;
     type Error: std::error::Error;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error>;
-    fn value(&self) -> &Self::Output;
     fn into_inner(self) -> Self::Input;
 }
+
+// Subtrait — simple single-primitive newtypes only
+pub trait PrimitiveValue: ValueObject {
+    type Primitive: ?Sized;
+    fn value(&self) -> &Self::Primitive;
+}
 ```
+
+Use `PrimitiveValue` as a bound when you need generic access to the inner value:
+
+```rust,ignore
+fn print_value<T: PrimitiveValue<Primitive = str>>(v: &T) {
+    println!("{}", v.value());
+}
+```
+
+For composite types, use the concrete type and its specific accessors.
 
 ## Why immutability matters
 
