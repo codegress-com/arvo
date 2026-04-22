@@ -1,12 +1,11 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 use rust_decimal::Decimal;
 
 /// Input type for [`NonNegativeDecimal`].
 pub type NonNegativeDecimalInput = Decimal;
 
 /// Output type for [`NonNegativeDecimal`].
-pub type NonNegativeDecimalOutput = Decimal;
 
 /// A non-negative decimal number (`Decimal >= 0`).
 ///
@@ -27,13 +26,10 @@ pub type NonNegativeDecimalOutput = Decimal;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "Decimal", into = "Decimal"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct NonNegativeDecimal(Decimal);
 
 impl ValueObject for NonNegativeDecimal {
     type Input = NonNegativeDecimalInput;
-    type Output = NonNegativeDecimalOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -48,15 +44,16 @@ impl ValueObject for NonNegativeDecimal {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
-
+impl PrimitiveValue for NonNegativeDecimal {
+    type Primitive = Decimal;
+    fn value(&self) -> &Decimal {
+        &self.0
+    }
+}
 
 impl TryFrom<Decimal> for NonNegativeDecimal {
     type Error = ValidationError;

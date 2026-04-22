@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`CurrencyCode`].
 pub type CurrencyCodeInput = String;
 
 /// Output type for [`CurrencyCode`].
-pub type CurrencyCodeOutput = String;
 
 /// Active ISO 4217 alphabetic currency codes, sorted for binary search.
 static ISO_4217: &[&str] = &[
@@ -45,13 +44,10 @@ static ISO_4217: &[&str] = &[
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct CurrencyCode(String);
 
 impl ValueObject for CurrencyCode {
     type Input = CurrencyCodeInput;
-    type Output = CurrencyCodeOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -72,15 +68,16 @@ impl ValueObject for CurrencyCode {
         Ok(Self(upper))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
-
+impl PrimitiveValue for CurrencyCode {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
 
 impl TryFrom<String> for CurrencyCode {
     type Error = ValidationError;

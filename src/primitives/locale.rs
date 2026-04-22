@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Locale`].
 pub type LocaleInput = String;
 
 /// Output type for [`Locale`] — BCP 47 canonical form, e.g. `"en-US"`.
-pub type LocaleOutput = String;
 
 /// A BCP 47 language tag (e.g. `"en-US"`, `"cs-CZ"`, `"fr"`).
 ///
@@ -31,13 +30,10 @@ pub type LocaleOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Locale(String);
 
 impl ValueObject for Locale {
     type Input = LocaleInput;
-    type Output = LocaleOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -71,12 +67,14 @@ impl ValueObject for Locale {
         Ok(Self(canonical))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Locale {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -93,7 +91,6 @@ impl Locale {
         parts.next()
     }
 }
-
 
 impl TryFrom<String> for Locale {
     type Error = ValidationError;

@@ -15,7 +15,6 @@ pub struct BusinessHoursInput {
 }
 
 /// Output type for [`BusinessHours`] — canonical `"<Day> HH:MM–HH:MM"` string.
-pub type BusinessHoursOutput = String;
 
 /// Validated business hours for a single weekday.
 ///
@@ -50,7 +49,6 @@ pub struct BusinessHours {
 
 impl ValueObject for BusinessHours {
     type Input = BusinessHoursInput;
-    type Output = BusinessHoursOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -83,10 +81,6 @@ impl ValueObject for BusinessHours {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         BusinessHoursInput {
             weekday: self.weekday,
@@ -97,6 +91,10 @@ impl ValueObject for BusinessHours {
 }
 
 impl BusinessHours {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     /// Returns the weekday.
     pub fn weekday(&self) -> Weekday {
         self.weekday
@@ -146,34 +144,6 @@ impl TryFrom<&str> for BusinessHours {
     }
 }
 
-
-#[cfg(feature = "sql")]
-impl sqlx::Type<sqlx::Postgres> for BusinessHours {
-    fn type_info() -> sqlx::postgres::PgTypeInfo {
-        <String as sqlx::Type<sqlx::Postgres>>::type_info()
-    }
-    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'q> sqlx::Encode<'q, sqlx::Postgres> for BusinessHours {
-    fn encode_by_ref(
-        &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
-    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.canonical, buf)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'r> sqlx::Decode<'r, sqlx::Postgres> for BusinessHours {
-    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
-        let s = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
-        Self::try_from(s.as_str()).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
-    }
-}
 #[cfg(feature = "serde")]
 impl From<BusinessHours> for String {
     fn from(v: BusinessHours) -> String {

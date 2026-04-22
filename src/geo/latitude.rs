@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Latitude`].
 pub type LatitudeInput = f64;
 
 /// Output type for [`Latitude`].
-pub type LatitudeOutput = f64;
 
 /// A validated geographic latitude in decimal degrees.
 ///
@@ -26,13 +25,10 @@ pub type LatitudeOutput = f64;
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "f64", into = "f64"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Latitude(f64);
 
 impl ValueObject for Latitude {
     type Input = LatitudeInput;
-    type Output = LatitudeOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -45,15 +41,16 @@ impl ValueObject for Latitude {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
-
+impl PrimitiveValue for Latitude {
+    type Primitive = f64;
+    fn value(&self) -> &f64 {
+        &self.0
+    }
+}
 
 impl TryFrom<f64> for Latitude {
     type Error = ValidationError;

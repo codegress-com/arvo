@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`HexColor`].
 pub type HexColorInput = String;
 
 /// Output type for [`HexColor`] — always a 7-character `#RRGGBB` string.
-pub type HexColorOutput = String;
 
 /// A CSS hex color in canonical `#RRGGBB` form, normalised to uppercase.
 ///
@@ -28,13 +27,10 @@ pub type HexColorOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct HexColor(String);
 
 impl ValueObject for HexColor {
     type Input = HexColorInput;
-    type Output = HexColorOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -68,12 +64,14 @@ impl ValueObject for HexColor {
         Ok(Self(expanded))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for HexColor {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -102,7 +100,6 @@ impl HexColor {
         (self.r(), self.g(), self.b())
     }
 }
-
 
 impl TryFrom<String> for HexColor {
     type Error = ValidationError;

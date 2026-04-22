@@ -1,7 +1,7 @@
 use rust_decimal::Decimal;
 
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 use super::currency_code::CurrencyCode;
 
@@ -15,7 +15,6 @@ pub struct MoneyInput {
 }
 
 /// Output type for [`Money`] — canonical `"<amount> <currency>"` string.
-pub type MoneyOutput = String;
 
 /// A validated monetary amount with an associated currency.
 ///
@@ -48,7 +47,6 @@ pub struct Money {
 
 impl ValueObject for Money {
     type Input = MoneyInput;
-    type Output = MoneyOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -60,10 +58,6 @@ impl ValueObject for Money {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         MoneyInput {
             amount: self.amount,
@@ -73,6 +67,10 @@ impl ValueObject for Money {
 }
 
 impl Money {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     /// Returns the monetary amount.
     pub fn amount(&self) -> &Decimal {
         &self.amount
@@ -129,34 +127,6 @@ impl TryFrom<&str> for Money {
     }
 }
 
-
-#[cfg(feature = "sql")]
-impl sqlx::Type<sqlx::Postgres> for Money {
-    fn type_info() -> sqlx::postgres::PgTypeInfo {
-        <String as sqlx::Type<sqlx::Postgres>>::type_info()
-    }
-    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'q> sqlx::Encode<'q, sqlx::Postgres> for Money {
-    fn encode_by_ref(
-        &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
-    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.canonical, buf)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'r> sqlx::Decode<'r, sqlx::Postgres> for Money {
-    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
-        let s = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
-        Self::try_from(s.as_str()).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
-    }
-}
 #[cfg(feature = "serde")]
 impl From<Money> for String {
     fn from(v: Money) -> String {
@@ -180,7 +150,7 @@ impl std::fmt::Display for Money {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::ValueObject;
+    use crate::traits::{PrimitiveValue, ValueObject};
 
     fn eur() -> CurrencyCode {
         CurrencyCode::new("EUR".into()).unwrap()

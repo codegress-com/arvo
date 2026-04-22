@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Isbn10`].
 pub type Isbn10Input = String;
 
 /// Output type for [`Isbn10`] — 10 characters (9 digits + check char `0–9` or `X`).
-pub type Isbn10Output = String;
 
 /// A validated ISBN-10 number.
 ///
@@ -29,13 +28,10 @@ pub type Isbn10Output = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Isbn10(String);
 
 impl ValueObject for Isbn10 {
     type Input = Isbn10Input;
-    type Output = Isbn10Output;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -80,15 +76,16 @@ impl ValueObject for Isbn10 {
         Ok(Self(stripped))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
-
+impl PrimitiveValue for Isbn10 {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
 
 impl TryFrom<String> for Isbn10 {
     type Error = ValidationError;

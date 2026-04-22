@@ -1,13 +1,12 @@
 use chrono::{Local, NaiveDate};
 
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`ExpiryDate`].
 pub type ExpiryDateInput = NaiveDate;
 
 /// Output type for [`ExpiryDate`].
-pub type ExpiryDateOutput = NaiveDate;
 
 /// A validated expiry date that is strictly in the future.
 ///
@@ -26,13 +25,10 @@ pub type ExpiryDateOutput = NaiveDate;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "chrono::NaiveDate", into = "chrono::NaiveDate"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct ExpiryDate(NaiveDate);
 
 impl ValueObject for ExpiryDate {
     type Input = ExpiryDateInput;
-    type Output = ExpiryDateOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -45,12 +41,14 @@ impl ValueObject for ExpiryDate {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for ExpiryDate {
+    type Primitive = chrono::NaiveDate;
+    fn value(&self) -> &chrono::NaiveDate {
+        &self.0
     }
 }
 
@@ -61,7 +59,6 @@ impl ExpiryDate {
         (self.0 - today).num_days()
     }
 }
-
 
 impl TryFrom<chrono::NaiveDate> for ExpiryDate {
     type Error = ValidationError;

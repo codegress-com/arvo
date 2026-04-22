@@ -9,15 +9,13 @@ mod positive_decimal;
 mod positive_int;
 mod probability;
 
-pub use base64_string::{Base64String, Base64StringInput, Base64StringOutput};
+pub use base64_string::{Base64String, Base64StringInput};
 pub use bounded_string::BoundedString;
-pub use hex_color::{HexColor, HexColorInput, HexColorOutput};
-pub use locale::{Locale, LocaleInput, LocaleOutput};
-pub use non_empty_string::{NonEmptyString, NonEmptyStringInput, NonEmptyStringOutput};
-pub use non_negative_decimal::{
-    NonNegativeDecimal, NonNegativeDecimalInput, NonNegativeDecimalOutput,
-};
-pub use non_negative_int::{NonNegativeInt, NonNegativeIntInput, NonNegativeIntOutput};
-pub use positive_decimal::{PositiveDecimal, PositiveDecimalInput, PositiveDecimalOutput};
-pub use positive_int::{PositiveInt, PositiveIntInput, PositiveIntOutput};
-pub use probability::{Probability, ProbabilityInput, ProbabilityOutput};
+pub use hex_color::{HexColor, HexColorInput};
+pub use locale::{Locale, LocaleInput};
+pub use non_empty_string::{NonEmptyString, NonEmptyStringInput};
+pub use non_negative_decimal::{NonNegativeDecimal, NonNegativeDecimalInput};
+pub use non_negative_int::{NonNegativeInt, NonNegativeIntInput};
+pub use positive_decimal::{PositiveDecimal, PositiveDecimalInput};
+pub use positive_int::{PositiveInt, PositiveIntInput};
+pub use probability::{Probability, ProbabilityInput};

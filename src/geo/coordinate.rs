@@ -1,5 +1,5 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 use super::{Latitude, Longitude};
 
@@ -40,7 +40,6 @@ pub struct Coordinate {
 
 impl ValueObject for Coordinate {
     type Input = CoordinateInput;
-    type Output = str;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -52,10 +51,6 @@ impl ValueObject for Coordinate {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         CoordinateInput {
             lat: self.lat,
@@ -65,6 +60,10 @@ impl ValueObject for Coordinate {
 }
 
 impl Coordinate {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     /// Returns the latitude component.
     pub fn lat(&self) -> &Latitude {
         &self.lat
@@ -88,34 +87,6 @@ impl TryFrom<&str> for Coordinate {
     }
 }
 
-
-#[cfg(feature = "sql")]
-impl sqlx::Type<sqlx::Postgres> for Coordinate {
-    fn type_info() -> sqlx::postgres::PgTypeInfo {
-        <String as sqlx::Type<sqlx::Postgres>>::type_info()
-    }
-    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'q> sqlx::Encode<'q, sqlx::Postgres> for Coordinate {
-    fn encode_by_ref(
-        &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
-    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.canonical, buf)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'r> sqlx::Decode<'r, sqlx::Postgres> for Coordinate {
-    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
-        let s = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
-        Self::try_from(s.as_str()).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
-    }
-}
 #[cfg(feature = "serde")]
 impl From<Coordinate> for String {
     fn from(v: Coordinate) -> String {

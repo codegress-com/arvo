@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`CountryRegion`].
 pub type CountryRegionInput = String;
 
 /// Output type for [`CountryRegion`].
-pub type CountryRegionOutput = String;
 
 /// A validated ISO 3166-2 subdivision code.
 ///
@@ -31,13 +30,10 @@ pub type CountryRegionOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct CountryRegion(String);
 
 impl ValueObject for CountryRegion {
     type Input = CountryRegionInput;
-    type Output = CountryRegionOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -54,12 +50,14 @@ impl ValueObject for CountryRegion {
         Ok(Self(upper))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for CountryRegion {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -94,7 +92,6 @@ impl CountryRegion {
         self.0.split('-').nth(1).unwrap_or("")
     }
 }
-
 
 impl TryFrom<String> for CountryRegion {
     type Error = ValidationError;

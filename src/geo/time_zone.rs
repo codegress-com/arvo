@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`TimeZone`].
 pub type TimeZoneInput = String;
 
 /// Output type for [`TimeZone`].
-pub type TimeZoneOutput = String;
 
 /// Sorted list of canonical IANA timezone names.
 static IANA_TIMEZONES: &[&str] = &[
@@ -457,13 +456,10 @@ static IANA_TIMEZONES: &[&str] = &[
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct TimeZone(String);
 
 impl ValueObject for TimeZone {
     type Input = TimeZoneInput;
-    type Output = TimeZoneOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -480,15 +476,16 @@ impl ValueObject for TimeZone {
         Ok(Self(trimmed.to_owned()))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
-
+impl PrimitiveValue for TimeZone {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
 
 impl TryFrom<String> for TimeZone {
     type Error = ValidationError;

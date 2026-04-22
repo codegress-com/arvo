@@ -1,5 +1,5 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 use super::country_code::CountryCode;
 
@@ -18,7 +18,6 @@ pub struct PostalAddressInput {
 }
 
 /// Output type for [`PostalAddress`] — a human-readable multi-line string.
-pub type PostalAddressOutput = String;
 
 /// A validated postal address.
 ///
@@ -64,7 +63,6 @@ pub struct PostalAddress {
 
 impl ValueObject for PostalAddress {
     type Input = PostalAddressInput;
-    type Output = PostalAddressOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -93,10 +91,6 @@ impl ValueObject for PostalAddress {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.formatted
-    }
-
     fn into_inner(self) -> Self::Input {
         PostalAddressInput {
             street: self.street,
@@ -108,6 +102,10 @@ impl ValueObject for PostalAddress {
 }
 
 impl PostalAddress {
+    pub fn value(&self) -> &str {
+        &self.formatted
+    }
+
     /// Returns the street field, e.g. `"Václavské náměstí 1"`.
     pub fn street(&self) -> &str {
         &self.street
@@ -153,7 +151,7 @@ impl std::fmt::Display for PostalAddress {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::ValueObject;
+    use crate::traits::{PrimitiveValue, ValueObject};
 
     fn cz() -> CountryCode {
         CountryCode::new("CZ".into()).unwrap()

@@ -1,5 +1,5 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -7,7 +7,6 @@ use regex::Regex;
 pub type EmailAddressInput = String;
 
 /// Output type for [`EmailAddress`] — a normalised lowercase string.
-pub type EmailAddressOutput = String;
 
 /// Compiled email regex — evaluated once at first use.
 ///
@@ -35,13 +34,10 @@ static EMAIL_REGEX: Lazy<Regex> =
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct EmailAddress(String);
 
 impl ValueObject for EmailAddress {
     type Input = EmailAddressInput;
-    type Output = EmailAddressOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -58,12 +54,14 @@ impl ValueObject for EmailAddress {
         Ok(Self(normalised))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for EmailAddress {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 

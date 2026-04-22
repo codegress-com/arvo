@@ -1,13 +1,12 @@
 use chrono::{DateTime, TimeZone, Utc};
 
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`UnixTimestamp`].
 pub type UnixTimestampInput = i64;
 
 /// Output type for [`UnixTimestamp`].
-pub type UnixTimestampOutput = i64;
 
 /// A validated Unix timestamp — non-negative seconds since the Unix epoch.
 ///
@@ -27,13 +26,10 @@ pub type UnixTimestampOutput = i64;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "i64", into = "i64"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct UnixTimestamp(i64);
 
 impl ValueObject for UnixTimestamp {
     type Input = UnixTimestampInput;
-    type Output = UnixTimestampOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -46,12 +42,14 @@ impl ValueObject for UnixTimestamp {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for UnixTimestamp {
+    type Primitive = i64;
+    fn value(&self) -> &i64 {
+        &self.0
     }
 }
 
@@ -61,7 +59,6 @@ impl UnixTimestamp {
         Utc.timestamp_opt(self.0, 0).single().expect("valid timestamp")
     }
 }
-
 
 impl TryFrom<i64> for UnixTimestamp {
     type Error = ValidationError;

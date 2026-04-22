@@ -13,7 +13,6 @@ pub struct TimeRangeInput {
 }
 
 /// Output type for [`TimeRange`] — canonical `"<start> / <end>"` string.
-pub type TimeRangeOutput = String;
 
 /// A validated time range with a start strictly before its end.
 ///
@@ -46,7 +45,6 @@ pub struct TimeRange {
 
 impl ValueObject for TimeRange {
     type Input = TimeRangeInput;
-    type Output = TimeRangeOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -65,10 +63,6 @@ impl ValueObject for TimeRange {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         TimeRangeInput {
             start: self.start,
@@ -78,6 +72,10 @@ impl ValueObject for TimeRange {
 }
 
 impl TimeRange {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     /// Returns the start of the range.
     pub fn start(&self) -> &DateTime<Utc> {
         &self.start
@@ -116,34 +114,6 @@ impl TryFrom<&str> for TimeRange {
     }
 }
 
-
-#[cfg(feature = "sql")]
-impl sqlx::Type<sqlx::Postgres> for TimeRange {
-    fn type_info() -> sqlx::postgres::PgTypeInfo {
-        <String as sqlx::Type<sqlx::Postgres>>::type_info()
-    }
-    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'q> sqlx::Encode<'q, sqlx::Postgres> for TimeRange {
-    fn encode_by_ref(
-        &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
-    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.canonical, buf)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'r> sqlx::Decode<'r, sqlx::Postgres> for TimeRange {
-    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
-        let s = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
-        Self::try_from(s.as_str()).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
-    }
-}
 #[cfg(feature = "serde")]
 impl From<TimeRange> for String {
     fn from(v: TimeRange) -> String {

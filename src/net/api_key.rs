@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`ApiKey`].
 pub type ApiKeyInput = String;
 
 /// Output type for [`ApiKey`].
-pub type ApiKeyOutput = String;
 
 /// A validated API key — non-empty, trimmed.
 ///
@@ -26,13 +25,10 @@ pub type ApiKeyOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct ApiKey(String);
 
 impl ValueObject for ApiKey {
     type Input = ApiKeyInput;
-    type Output = ApiKeyOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -45,12 +41,14 @@ impl ValueObject for ApiKey {
         Ok(Self(trimmed))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for ApiKey {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -78,7 +76,6 @@ impl std::fmt::Display for ApiKey {
         write!(f, "{}", self.masked())
     }
 }
-
 
 impl TryFrom<String> for ApiKey {
     type Error = ValidationError;

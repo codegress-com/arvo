@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Slug`].
 pub type SlugInput = String;
 
 /// Output type for [`Slug`].
-pub type SlugOutput = String;
 
 /// A URL-safe slug: lowercase alphanumeric characters and hyphens only.
 ///
@@ -27,13 +26,10 @@ pub type SlugOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Slug(String);
 
 impl ValueObject for Slug {
     type Input = SlugInput;
-    type Output = SlugOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -61,15 +57,16 @@ impl ValueObject for Slug {
         Ok(Self(normalised))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
-
+impl PrimitiveValue for Slug {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
 
 impl TryFrom<String> for Slug {
     type Error = ValidationError;

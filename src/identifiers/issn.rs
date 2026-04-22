@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Issn`].
 pub type IssnInput = String;
 
 /// Output type for [`Issn`] — canonical `XXXX-XXXX` form.
-pub type IssnOutput = String;
 
 /// A validated ISSN (International Standard Serial Number).
 ///
@@ -28,13 +27,10 @@ pub type IssnOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Issn(String);
 
 impl ValueObject for Issn {
     type Input = IssnInput;
-    type Output = IssnOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -79,15 +75,16 @@ impl ValueObject for Issn {
         Ok(Self(canonical))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
-
+impl PrimitiveValue for Issn {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
 
 impl TryFrom<String> for Issn {
     type Error = ValidationError;

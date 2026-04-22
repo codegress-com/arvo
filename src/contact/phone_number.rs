@@ -1,5 +1,5 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -15,7 +15,6 @@ pub struct PhoneNumberInput {
 }
 
 /// Output type for [`PhoneNumber`] — canonical E.164 string, e.g. `"+420123456789"`.
-pub type PhoneNumberOutput = String;
 
 /// Validates the local number part: digits only, 4–14 characters.
 static NUMBER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4,14}$").unwrap());
@@ -61,7 +60,6 @@ impl From<PhoneNumber> for String {
 
 impl ValueObject for PhoneNumber {
     type Input = PhoneNumberInput;
-    type Output = PhoneNumberOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -90,16 +88,16 @@ impl ValueObject for PhoneNumber {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.e164
-    }
-
     fn into_inner(self) -> Self::Input {
         self.input
     }
 }
 
 impl PhoneNumber {
+    pub fn value(&self) -> &str {
+        &self.e164
+    }
+
     /// Returns the ITU calling code prefix, e.g. `"+420"`.
     pub fn calling_code(&self) -> &str {
         calling_code(self.input.country_code.value()).unwrap_or("+0")
@@ -382,7 +380,7 @@ fn calling_code(country: &str) -> Option<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::ValueObject;
+    use crate::traits::{PrimitiveValue, ValueObject};
 
     fn cz() -> CountryCode {
         CountryCode::new("CZ".into()).unwrap()

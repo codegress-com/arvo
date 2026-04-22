@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Iban`].
 pub type IbanInput = String;
 
 /// Output type for [`Iban`] — canonical uppercase string without spaces.
-pub type IbanOutput = String;
 
 /// A validated IBAN (International Bank Account Number).
 ///
@@ -28,13 +27,10 @@ pub type IbanOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Iban(String);
 
 impl ValueObject for Iban {
     type Input = IbanInput;
-    type Output = IbanOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -71,12 +67,14 @@ impl ValueObject for Iban {
         Ok(Self(stripped))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Iban {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -96,7 +94,6 @@ impl Iban {
         &self.0[4..]
     }
 }
-
 
 impl TryFrom<String> for Iban {
     type Error = ValidationError;

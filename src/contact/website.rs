@@ -1,12 +1,11 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 use url::Url;
 
 /// Input type for [`Website`] — a raw string before validation.
 pub type WebsiteInput = String;
 
 /// Output type for [`Website`] — a normalised URL string.
-pub type WebsiteOutput = String;
 
 /// A validated website URL.
 ///
@@ -29,13 +28,10 @@ pub type WebsiteOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Website(String);
 
 impl ValueObject for Website {
     type Input = WebsiteInput;
-    type Output = WebsiteOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -60,12 +56,14 @@ impl ValueObject for Website {
         Ok(Self(parsed.to_string()))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Website {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 

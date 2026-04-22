@@ -11,34 +11,6 @@ pub enum PowerUnit {
     Hp,
 }
 
-
-#[cfg(feature = "sql")]
-impl sqlx::Type<sqlx::Postgres> for Power {
-    fn type_info() -> sqlx::postgres::PgTypeInfo {
-        <String as sqlx::Type<sqlx::Postgres>>::type_info()
-    }
-    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'q> sqlx::Encode<'q, sqlx::Postgres> for Power {
-    fn encode_by_ref(
-        &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
-    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.canonical, buf)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'r> sqlx::Decode<'r, sqlx::Postgres> for Power {
-    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
-        let s = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
-        Self::try_from(s.as_str()).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
-    }
-}
 #[cfg(feature = "serde")]
 impl From<Power> for String {
     fn from(v: Power) -> String {
@@ -95,7 +67,6 @@ pub struct Power {
 
 impl ValueObject for Power {
     type Input = PowerInput;
-    type Output = str;
     type Error = ValidationError;
 
     fn new(input: Self::Input) -> Result<Self, Self::Error> {
@@ -110,9 +81,6 @@ impl ValueObject for Power {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
     fn into_inner(self) -> Self::Input {
         PowerInput {
             value: self.value,
@@ -122,6 +90,10 @@ impl ValueObject for Power {
 }
 
 impl Power {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     pub fn amount(&self) -> f64 {
         self.value
     }

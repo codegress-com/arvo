@@ -29,7 +29,6 @@ temporal = ["dep:chrono"]
 
 # Cross-cutting concerns can be combined with any module
 serde = ["dep:serde"]
-sql = ["dep:sqlx"]
 
 # Everything at once
 full = [
@@ -54,7 +53,6 @@ ulid = { version = "1", optional = true }
 url = { version = "~2.4", optional = true }
 base64 = { version = "0.22", optional = true }
 serde = { version = "1", optional = true, features = ["derive"] }
-sqlx = { version = "0.8", optional = true, features = ["postgres", "chrono", "rust_decimal"] }
 
 [dev-dependencies]
 serde_json = "1"

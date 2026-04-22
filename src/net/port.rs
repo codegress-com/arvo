@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Port`].
 pub type PortInput = u16;
 
 /// Output type for [`Port`].
-pub type PortOutput = u16;
 
 /// A validated network port number in the range `1..=65535`.
 ///
@@ -29,7 +28,6 @@ pub struct Port(u16);
 
 impl ValueObject for Port {
     type Input = PortInput;
-    type Output = PortOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -39,12 +37,14 @@ impl ValueObject for Port {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Port {
+    type Primitive = u16;
+    fn value(&self) -> &u16 {
+        &self.0
     }
 }
 
@@ -65,7 +65,6 @@ impl Port {
     }
 }
 
-
 impl TryFrom<u16> for Port {
     type Error = ValidationError;
     fn try_from(v: u16) -> Result<Self, Self::Error> {
@@ -85,35 +84,6 @@ impl TryFrom<&str> for Port {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let parsed = value.trim().parse::<u16>().map_err(|_| ValidationError::invalid("Port", value))?;
         Self::new(parsed)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl sqlx::Type<sqlx::Postgres> for Port {
-    fn type_info() -> sqlx::postgres::PgTypeInfo {
-        <i32 as sqlx::Type<sqlx::Postgres>>::type_info()
-    }
-    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
-        <i32 as sqlx::Type<sqlx::Postgres>>::compatible(ty)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'q> sqlx::Encode<'q, sqlx::Postgres> for Port {
-    fn encode_by_ref(
-        &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
-    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <i32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&(self.0 as i32), buf)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'r> sqlx::Decode<'r, sqlx::Postgres> for Port {
-    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
-        let n = <i32 as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
-        let u = u16::try_from(n).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)?;
-        Self::new(u).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
     }
 }
 

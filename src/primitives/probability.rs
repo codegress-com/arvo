@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Probability`].
 pub type ProbabilityInput = f64;
 
 /// Output type for [`Probability`].
-pub type ProbabilityOutput = f64;
 
 /// A probability value in the range `0.0..=1.0`.
 ///
@@ -26,13 +25,10 @@ pub type ProbabilityOutput = f64;
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "f64", into = "f64"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Probability(f64);
 
 impl ValueObject for Probability {
     type Input = ProbabilityInput;
-    type Output = ProbabilityOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -47,15 +43,16 @@ impl ValueObject for Probability {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
-
+impl PrimitiveValue for Probability {
+    type Primitive = f64;
+    fn value(&self) -> &f64 {
+        &self.0
+    }
+}
 
 impl TryFrom<f64> for Probability {
     type Error = ValidationError;

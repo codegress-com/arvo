@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`NonNegativeInt`].
 pub type NonNegativeIntInput = i64;
 
 /// Output type for [`NonNegativeInt`].
-pub type NonNegativeIntOutput = i64;
 
 /// A non-negative integer (`i64 >= 0`).
 ///
@@ -25,13 +24,10 @@ pub type NonNegativeIntOutput = i64;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "i64", into = "i64"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct NonNegativeInt(i64);
 
 impl ValueObject for NonNegativeInt {
     type Input = NonNegativeIntInput;
-    type Output = NonNegativeIntOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -46,15 +42,16 @@ impl ValueObject for NonNegativeInt {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
-
+impl PrimitiveValue for NonNegativeInt {
+    type Primitive = i64;
+    fn value(&self) -> &i64 {
+        &self.0
+    }
+}
 
 impl TryFrom<i64> for NonNegativeInt {
     type Error = ValidationError;

@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`CountryCode`] — a raw string before validation.
 pub type CountryCodeInput = String;
 
 /// Output type for [`CountryCode`] — a normalised uppercase string.
-pub type CountryCodeOutput = String;
 
 /// A validated ISO 3166-1 alpha-2 country code.
 ///
@@ -28,13 +27,10 @@ pub type CountryCodeOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct CountryCode(String);
 
 impl ValueObject for CountryCode {
     type Input = CountryCodeInput;
-    type Output = CountryCodeOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -50,12 +46,14 @@ impl ValueObject for CountryCode {
         Ok(Self(normalised))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for CountryCode {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 

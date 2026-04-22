@@ -1,5 +1,5 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// A string whose length (in Unicode characters) is constrained to `MIN..=MAX`.
 ///
@@ -29,7 +29,6 @@ pub struct BoundedString<const MIN: usize, const MAX: usize>(String);
 
 impl<const MIN: usize, const MAX: usize> ValueObject for BoundedString<MIN, MAX> {
     type Input = String;
-    type Output = String;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -52,12 +51,15 @@ impl<const MIN: usize, const MAX: usize> ValueObject for BoundedString<MIN, MAX>
         Ok(Self(trimmed))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+
+impl<const MIN: usize, const MAX: usize> PrimitiveValue for BoundedString<MIN, MAX> {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -81,38 +83,6 @@ impl<const MIN: usize, const MAX: usize> TryFrom<&str> for BoundedString<MIN, MA
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Self::new(value.to_owned())
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<const MIN: usize, const MAX: usize> sqlx::Type<sqlx::Postgres> for BoundedString<MIN, MAX> {
-    fn type_info() -> sqlx::postgres::PgTypeInfo {
-        <String as sqlx::Type<sqlx::Postgres>>::type_info()
-    }
-    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'q, const MIN: usize, const MAX: usize> sqlx::Encode<'q, sqlx::Postgres>
-    for BoundedString<MIN, MAX>
-{
-    fn encode_by_ref(
-        &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
-    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.0, buf)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'r, const MIN: usize, const MAX: usize> sqlx::Decode<'r, sqlx::Postgres>
-    for BoundedString<MIN, MAX>
-{
-    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
-        let s = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
-        Self::new(s).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
     }
 }
 

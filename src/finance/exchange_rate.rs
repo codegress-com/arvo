@@ -1,7 +1,7 @@
 use rust_decimal::Decimal;
 
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 use super::currency_code::CurrencyCode;
 
@@ -17,7 +17,6 @@ pub struct ExchangeRateInput {
 }
 
 /// Output type for [`ExchangeRate`] — canonical `"<FROM>/<TO> <rate>"` string.
-pub type ExchangeRateOutput = String;
 
 /// A validated currency exchange rate.
 ///
@@ -53,7 +52,6 @@ pub struct ExchangeRate {
 
 impl ValueObject for ExchangeRate {
     type Input = ExchangeRateInput;
-    type Output = ExchangeRateOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -80,10 +78,6 @@ impl ValueObject for ExchangeRate {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         ExchangeRateInput {
             from: self.from,
@@ -94,6 +88,10 @@ impl ValueObject for ExchangeRate {
 }
 
 impl ExchangeRate {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     /// Returns the source currency.
     pub fn from(&self) -> &CurrencyCode {
         &self.from
@@ -124,34 +122,6 @@ impl TryFrom<&str> for ExchangeRate {
     }
 }
 
-
-#[cfg(feature = "sql")]
-impl sqlx::Type<sqlx::Postgres> for ExchangeRate {
-    fn type_info() -> sqlx::postgres::PgTypeInfo {
-        <String as sqlx::Type<sqlx::Postgres>>::type_info()
-    }
-    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'q> sqlx::Encode<'q, sqlx::Postgres> for ExchangeRate {
-    fn encode_by_ref(
-        &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
-    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.canonical, buf)
-    }
-}
-
-#[cfg(feature = "sql")]
-impl<'r> sqlx::Decode<'r, sqlx::Postgres> for ExchangeRate {
-    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
-        let s = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
-        Self::try_from(s.as_str()).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
-    }
-}
 #[cfg(feature = "serde")]
 impl From<ExchangeRate> for String {
     fn from(v: ExchangeRate) -> String {
@@ -175,7 +145,7 @@ impl std::fmt::Display for ExchangeRate {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::ValueObject;
+    use crate::traits::{PrimitiveValue, ValueObject};
 
     fn eur() -> CurrencyCode {
         CurrencyCode::new("EUR".into()).unwrap()

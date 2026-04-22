@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Percentage`].
 pub type PercentageInput = f64;
 
 /// Output type for [`Percentage`].
-pub type PercentageOutput = f64;
 
 /// A validated percentage value in the range `0.0..=100.0`.
 ///
@@ -28,13 +27,10 @@ pub type PercentageOutput = f64;
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "f64", into = "f64"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Percentage(f64);
 
 impl ValueObject for Percentage {
     type Input = PercentageInput;
-    type Output = PercentageOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -49,12 +45,14 @@ impl ValueObject for Percentage {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Percentage {
+    type Primitive = f64;
+    fn value(&self) -> &f64 {
+        &self.0
     }
 }
 
@@ -64,7 +62,6 @@ impl Percentage {
         self.0 / 100.0
     }
 }
-
 
 impl TryFrom<f64> for Percentage {
     type Error = ValidationError;

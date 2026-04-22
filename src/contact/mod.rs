@@ -5,8 +5,8 @@ mod phone_number;
 mod postal_address;
 mod website;
 
-pub use country_code::{CountryCode, CountryCodeInput, CountryCodeOutput};
-pub use email_address::{EmailAddress, EmailAddressInput, EmailAddressOutput};
-pub use phone_number::{PhoneNumber, PhoneNumberInput, PhoneNumberOutput};
-pub use postal_address::{PostalAddress, PostalAddressInput, PostalAddressOutput};
-pub use website::{Website, WebsiteInput, WebsiteOutput};
+pub use country_code::{CountryCode, CountryCodeInput};
+pub use email_address::{EmailAddress, EmailAddressInput};
+pub use phone_number::{PhoneNumber, PhoneNumberInput};
+pub use postal_address::{PostalAddress, PostalAddressInput};
+pub use website::{Website, WebsiteInput};

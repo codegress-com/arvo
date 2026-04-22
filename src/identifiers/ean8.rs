@@ -1,11 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Ean8`].
 pub type Ean8Input = String;
 
 /// Output type for [`Ean8`] — 8 bare digits.
-pub type Ean8Output = String;
 
 /// A validated EAN-8 barcode number.
 ///
@@ -26,8 +25,6 @@ pub type Ean8Output = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Ean8(String);
 
 fn ean_checksum_valid(digits: &[u8], expected_len: usize) -> bool {
@@ -49,7 +46,6 @@ fn ean_checksum_valid(digits: &[u8], expected_len: usize) -> bool {
 
 impl ValueObject for Ean8 {
     type Input = Ean8Input;
-    type Output = Ean8Output;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -68,12 +64,14 @@ impl ValueObject for Ean8 {
         Ok(Self(stripped))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Ean8 {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -83,7 +81,6 @@ impl Ean8 {
         self.0.as_bytes().last().map(|b| b - b'0').unwrap_or(0)
     }
 }
-
 
 impl TryFrom<String> for Ean8 {
     type Error = ValidationError;

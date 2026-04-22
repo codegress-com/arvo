@@ -1,5 +1,5 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 
@@ -7,7 +7,6 @@ use base64::engine::general_purpose::STANDARD;
 pub type Base64StringInput = String;
 
 /// Output type for [`Base64String`].
-pub type Base64StringOutput = String;
 
 /// A validated standard Base64-encoded string.
 ///
@@ -29,13 +28,10 @@ pub type Base64StringOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Base64String(String);
 
 impl ValueObject for Base64String {
     type Input = Base64StringInput;
-    type Output = Base64StringOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -49,12 +45,14 @@ impl ValueObject for Base64String {
         Ok(Self(trimmed))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Base64String {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -64,7 +62,6 @@ impl Base64String {
         STANDARD.decode(&self.0).expect("already validated")
     }
 }
-
 
 impl TryFrom<String> for Base64String {
     type Error = ValidationError;

@@ -1,13 +1,12 @@
 use chrono::{Datelike, Local, NaiveDate};
 
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`BirthDate`].
 pub type BirthDateInput = NaiveDate;
 
 /// Output type for [`BirthDate`].
-pub type BirthDateOutput = NaiveDate;
 
 /// A validated date of birth.
 ///
@@ -28,13 +27,10 @@ pub type BirthDateOutput = NaiveDate;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "chrono::NaiveDate", into = "chrono::NaiveDate"))]
-#[cfg_attr(feature = "sql", derive(sqlx::Type))]
-#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct BirthDate(NaiveDate);
 
 impl ValueObject for BirthDate {
     type Input = BirthDateInput;
-    type Output = BirthDateOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -55,12 +51,14 @@ impl ValueObject for BirthDate {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for BirthDate {
+    type Primitive = chrono::NaiveDate;
+    fn value(&self) -> &chrono::NaiveDate {
+        &self.0
     }
 }
 
@@ -82,7 +80,6 @@ impl BirthDate {
         self.age_years() < 18
     }
 }
-
 
 impl TryFrom<chrono::NaiveDate> for BirthDate {
     type Error = ValidationError;
