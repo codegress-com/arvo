@@ -103,12 +103,16 @@ impl Coordinate {
 
 - [ ] `type Input` and `type Output` type aliases defined and exported
 - [ ] `#[derive(Debug, Clone, PartialEq, Eq, Hash)]` on the struct
-- [ ] `#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]`
+- [ ] Serde: `#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]`
+      + `serde(try_from = "T", into = "T")` so deserialisation validates via `new()`
+      + `impl TryFrom<T>` delegating to `new()` and `#[cfg(feature = "serde")] impl From<Type> for T`
+- [ ] SQLx: `#[cfg_attr(feature = "sql", derive(sqlx::Type))] #[cfg_attr(feature = "sql", sqlx(transparent))]`
+      for simple newtypes; manual `Type + Encode + Decode` for composites (store as TEXT via `TryFrom<&str>`)
 - [ ] `impl ValueObject` with `new`, `value`, `into_inner`
-- [ ] `impl TryFrom<&str>` (for string-input types)
+- [ ] `impl TryFrom<&str>` (for string-input types and all composite types)
 - [ ] `impl Display`
 - [ ] Extra accessors for composite types
-- [ ] Unit tests: valid input, empty/invalid input, normalisation, `try_from`
+- [ ] Unit tests: valid input, empty/invalid input, normalisation, `try_from`, `serde_roundtrip`, `serde_deserialize_validates`
 - [ ] Doc comment with `# Example` block
 - [ ] Registered in `mod.rs` and `prelude`
 - [ ] Status updated in `ROADMAP.md`

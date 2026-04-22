@@ -216,7 +216,7 @@ Parsing errors return `ValidationError` just like `::new()`.
 
 ## Serde support
 
-Enable the `serde` feature. All types serialize as their raw primitive (transparent newtype):
+Enable the `serde` feature. All types serialize as their raw primitive and **deserialisation validates** — invalid values are rejected at parse time, not after:
 
 ```rust,ignore
 use arvo::contact::EmailAddress;
@@ -226,9 +226,16 @@ let email = EmailAddress::new("user@example.com".into())?;
 let json = serde_json::to_string(&email)?;
 // → "\"user@example.com\""
 
-// Deserialization validates — invalid JSON values are rejected at parse time
+// Deserialisation goes through new() — domain validation is enforced
 let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
+
+// Invalid values are rejected at parse time
+let err: Result<EmailAddress, _> = serde_json::from_str(r#""not-an-email""#);
+assert!(err.is_err());
 ```
+
+Composite types (`PostalAddress`) serialise as their structured `Input` type (JSON object).  
+`PhoneNumber` and `PostalAddress` do not support `TryFrom<&str>`, so no canonical-string round-trip is attempted.
 
 ---
 
