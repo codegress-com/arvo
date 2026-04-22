@@ -69,6 +69,38 @@ impl<const MIN: usize, const MAX: usize> TryFrom<&str> for BoundedString<MIN, MA
     }
 }
 
+#[cfg(feature = "sql")]
+impl<const MIN: usize, const MAX: usize> sqlx::Type<sqlx::Postgres> for BoundedString<MIN, MAX> {
+    fn type_info() -> sqlx::postgres::PgTypeInfo {
+        <String as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
+        <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
+    }
+}
+
+#[cfg(feature = "sql")]
+impl<'q, const MIN: usize, const MAX: usize> sqlx::Encode<'q, sqlx::Postgres>
+    for BoundedString<MIN, MAX>
+{
+    fn encode_by_ref(
+        &self,
+        buf: &mut sqlx::postgres::PgArgumentBuffer,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        <String as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.0, buf)
+    }
+}
+
+#[cfg(feature = "sql")]
+impl<'r, const MIN: usize, const MAX: usize> sqlx::Decode<'r, sqlx::Postgres>
+    for BoundedString<MIN, MAX>
+{
+    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
+        let s = <String as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
+        Self::new(s).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
+    }
+}
+
 impl<const MIN: usize, const MAX: usize> std::fmt::Display for BoundedString<MIN, MAX> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)

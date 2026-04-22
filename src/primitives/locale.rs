@@ -31,6 +31,8 @@ pub type LocaleOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "sql", derive(sqlx::Type))]
+#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Locale(String);
 
 impl ValueObject for Locale {

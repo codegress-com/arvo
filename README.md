@@ -35,6 +35,7 @@ let email: EmailAddress = "user@example.com".try_into()?;
 - [The `ValueObject` trait](#the-valueobject-trait)
 - [Error handling](#error-handling)
 - [Serde support](#serde-support)
+- [SQL support](#sql-support)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 
@@ -79,6 +80,7 @@ Enable only the modules you need — unused features add zero dependencies.
 | `primitives` | `NonEmptyString`, `BoundedString`, `PositiveInt`, `NonNegativeInt`, `PositiveDecimal`, `NonNegativeDecimal`, `Probability`, `HexColor`, `Locale`, `Base64String` | `rust_decimal`, `base64` |
 | `temporal` | `UnixTimestamp`, `BirthDate`, `ExpiryDate`, `TimeRange`, `BusinessHours` | `chrono` |
 | `serde` | `Serialize` / `Deserialize` on all types | `serde` |
+| `sql` | `sqlx::Type` + `Encode` + `Decode` for PostgreSQL on all types | `sqlx` |
 | `full` | All domain modules | all of the above |
 
 > **Tip:** `serde` and `full` are orthogonal — combine them freely:
@@ -92,7 +94,7 @@ Enable only the modules you need — unused features add zero dependencies.
 use arvo::contact::{CountryCode, PhoneNumber, PhoneNumberInput};
 use arvo::prelude::*;
 
-// Simple value object — validated and normalised on construction
+// Construct via new() — validates and normalises on construction
 let email = EmailAddress::new("User@Example.COM".into())?;
 assert_eq!(email.value(), "user@example.com");  // always lowercase
 assert_eq!(email.domain(), "example.com");
@@ -185,6 +187,33 @@ match EmailAddress::new("bad".into()) {
 
 ---
 
+## Parsing from strings
+
+Every type implements `TryFrom<&str>` (and therefore `.try_into()`) that parses the canonical string representation and validates in one step:
+
+```rust,ignore
+// Simple types parse their primitive value
+let lat: Latitude       = "48.8588".try_into()?;
+let port: Port          = "8080".try_into()?;
+let ts: UnixTimestamp   = "1700000000".try_into()?;
+let dob: BirthDate      = "1990-06-15".try_into()?;
+
+// Composite types parse their canonical string format
+let money: Money        = "10.50 EUR".try_into()?;
+let rate: ExchangeRate  = "EUR/USD 1.0850".try_into()?;
+let coord: Coordinate   = "48.858844, 2.294351".try_into()?;
+let len: Length         = "1.5 km".try_into()?;
+let range: TimeRange    = "2025-01-01 10:00:00 UTC / 2025-01-01 12:00:00 UTC".try_into()?;
+let hours: BusinessHours = "Mon 09:00–17:00".try_into()?;
+```
+
+Parsing errors return `ValidationError` just like `::new()`.
+
+> **Note:** `PhoneNumber` and `PostalAddress` do not implement `TryFrom<&str>` — their
+> canonical strings are not unambiguously reversible back to a structured input.
+
+---
+
 ## Serde support
 
 Enable the `serde` feature. All types serialize as their raw primitive (transparent newtype):
@@ -200,6 +229,45 @@ let json = serde_json::to_string(&email)?;
 // Deserialization validates — invalid JSON values are rejected at parse time
 let parsed: EmailAddress = serde_json::from_str(r#""hello@example.com""#)?;
 ```
+
+---
+
+## SQL support
+
+Enable the `sql` feature. All types implement `sqlx::Type`, `sqlx::Encode`, and `sqlx::Decode` for PostgreSQL:
+
+```toml
+arvo = { version = "0.9", features = ["finance", "sql"] }
+```
+
+```rust,ignore
+// Use arvo types directly in sqlx queries
+let money: Money = sqlx::query_scalar("SELECT price FROM products WHERE id = $1")
+    .bind(id)
+    .fetch_one(&pool)
+    .await?;
+
+// Bind arvo types as query parameters
+sqlx::query("INSERT INTO orders (amount) VALUES ($1)")
+    .bind(Money::new(MoneyInput { amount: "9.99".parse()?, currency })?)
+    .execute(&pool)
+    .await?;
+```
+
+**Storage mapping:**
+
+| Type category | PostgreSQL type |
+|:---|:---|
+| `String`-based newtypes (`EmailAddress`, `Iban`, `Slug`, …) | `TEXT` |
+| `f64` newtypes (`Latitude`, `Longitude`, `Percentage`, …) | `FLOAT8` |
+| `i64` newtypes (`PositiveInt`, `UnixTimestamp`, …) | `INT8` |
+| `Decimal` newtypes (`PositiveDecimal`, `NonNegativeDecimal`) | `NUMERIC` |
+| `NaiveDate` newtypes (`BirthDate`, `ExpiryDate`) | `DATE` |
+| `Port`, `HttpStatusCode` (u16) | `INT4` |
+| Composite types (`Money`, `Coordinate`, `Length`, …) | `TEXT` (canonical string) |
+
+> **Note:** `PhoneNumber` and `PostalAddress` do not implement sqlx traits —
+> their canonical strings cannot be unambiguously decoded back to a structured value.
 
 ---
 

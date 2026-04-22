@@ -74,6 +74,35 @@ impl TryFrom<&str> for Port {
     }
 }
 
+#[cfg(feature = "sql")]
+impl sqlx::Type<sqlx::Postgres> for Port {
+    fn type_info() -> sqlx::postgres::PgTypeInfo {
+        <i32 as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+    fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
+        <i32 as sqlx::Type<sqlx::Postgres>>::compatible(ty)
+    }
+}
+
+#[cfg(feature = "sql")]
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for Port {
+    fn encode_by_ref(
+        &self,
+        buf: &mut sqlx::postgres::PgArgumentBuffer,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        <i32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&(self.0 as i32), buf)
+    }
+}
+
+#[cfg(feature = "sql")]
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for Port {
+    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, sqlx::error::BoxDynError> {
+        let n = <i32 as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
+        let u = u16::try_from(n).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)?;
+        Self::new(u).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
+    }
+}
+
 impl std::fmt::Display for Port {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)

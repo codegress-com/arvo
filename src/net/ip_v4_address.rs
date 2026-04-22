@@ -27,6 +27,8 @@ pub type IpV4AddressOutput = String;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "sql", derive(sqlx::Type))]
+#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct IpV4Address(String);
 
 impl ValueObject for IpV4Address {

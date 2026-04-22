@@ -28,6 +28,8 @@ pub type PercentageOutput = f64;
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "sql", derive(sqlx::Type))]
+#[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Percentage(f64);
 
 impl ValueObject for Percentage {
