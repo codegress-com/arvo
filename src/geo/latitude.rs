@@ -25,7 +25,7 @@ pub type LatitudeOutput = f64;
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "f64", into = "f64"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Latitude(f64);
@@ -54,6 +54,20 @@ impl ValueObject for Latitude {
     }
 }
 
+
+impl TryFrom<f64> for Latitude {
+    type Error = ValidationError;
+    fn try_from(v: f64) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Latitude> for f64 {
+    fn from(v: Latitude) -> f64 {
+        v.0
+    }
+}
 impl TryFrom<&str> for Latitude {
     type Error = ValidationError;
 
@@ -128,5 +142,22 @@ mod tests {
     #[test]
     fn try_from_rejects_out_of_range() {
         assert!(Latitude::try_from("91.0").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Latitude::new(48.8588).unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "48.8588");
+        let back: Latitude = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Latitude, _> = serde_json::from_str("91.0");
+        assert!(result.is_err());
     }
 }

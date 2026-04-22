@@ -34,7 +34,7 @@ static EMAIL_REGEX: Lazy<Regex> =
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct EmailAddress(String);
@@ -80,6 +80,20 @@ impl EmailAddress {
 }
 
 /// Allows ergonomic construction from a string literal: `"a@b.com".try_into()`
+
+impl TryFrom<String> for EmailAddress {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<EmailAddress> for String {
+    fn from(v: EmailAddress) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for EmailAddress {
     type Error = ValidationError;
 
@@ -144,5 +158,21 @@ mod tests {
     fn try_from_str() {
         let e: EmailAddress = "hello@example.com".try_into().unwrap();
         assert_eq!(e.value(), "hello@example.com");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = EmailAddress::try_from("user@example.com").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: EmailAddress = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<EmailAddress, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

@@ -27,7 +27,7 @@ pub type IssnOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Issn(String);
@@ -88,6 +88,20 @@ impl ValueObject for Issn {
     }
 }
 
+
+impl TryFrom<String> for Issn {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Issn> for String {
+    fn from(v: Issn) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Issn {
     type Error = ValidationError;
 
@@ -150,5 +164,21 @@ mod tests {
     fn try_from_str() {
         let i: Issn = "0317-8471".try_into().unwrap();
         assert_eq!(i.value(), "0317-8471");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Issn::try_from("0317-8471").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Issn = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Issn, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

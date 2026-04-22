@@ -31,10 +31,10 @@ pub struct CoordinateInput {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Coordinate {
     lat: Latitude,
     lng: Longitude,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
@@ -116,6 +116,20 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for Coordinate {
         Self::try_from(s.as_str()).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
     }
 }
+#[cfg(feature = "serde")]
+impl From<Coordinate> for String {
+    fn from(v: Coordinate) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for Coordinate {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for Coordinate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)
@@ -175,5 +189,22 @@ mod tests {
     #[test]
     fn try_from_rejects_invalid_lat() {
         assert!(Coordinate::try_from("91.0, 0.0").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Coordinate::try_from("48.858844, 2.294351").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Coordinate = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = Coordinate::try_from("48.858844, 2.294351").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("48.858844, 2.294351"));
     }
 }

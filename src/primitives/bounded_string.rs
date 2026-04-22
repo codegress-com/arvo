@@ -24,7 +24,7 @@ use crate::traits::ValueObject;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct BoundedString<const MIN: usize, const MAX: usize>(String);
 
 impl<const MIN: usize, const MAX: usize> ValueObject for BoundedString<MIN, MAX> {
@@ -58,6 +58,21 @@ impl<const MIN: usize, const MAX: usize> ValueObject for BoundedString<MIN, MAX>
 
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+
+impl<const MIN: usize, const MAX: usize> TryFrom<String> for BoundedString<MIN, MAX> {
+    type Error = ValidationError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<const MIN: usize, const MAX: usize> From<BoundedString<MIN, MAX>> for String {
+    fn from(v: BoundedString<MIN, MAX>) -> String {
+        v.0
     }
 }
 

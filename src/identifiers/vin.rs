@@ -27,7 +27,7 @@ pub type VinOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Vin(String);
@@ -148,6 +148,20 @@ impl Vin {
     }
 }
 
+
+impl TryFrom<String> for Vin {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Vin> for String {
+    fn from(v: Vin) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Vin {
     type Error = ValidationError;
 
@@ -233,5 +247,21 @@ mod tests {
     fn try_from_str() {
         let v: Vin = VALID_VIN.try_into().unwrap();
         assert_eq!(v.value(), VALID_VIN);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Vin::try_from("1HGBH41JXMN109186").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Vin = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Vin, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

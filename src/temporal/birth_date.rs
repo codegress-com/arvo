@@ -27,7 +27,7 @@ pub type BirthDateOutput = NaiveDate;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "chrono::NaiveDate", into = "chrono::NaiveDate"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct BirthDate(NaiveDate);
@@ -83,6 +83,20 @@ impl BirthDate {
     }
 }
 
+
+impl TryFrom<chrono::NaiveDate> for BirthDate {
+    type Error = ValidationError;
+    fn try_from(v: chrono::NaiveDate) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<BirthDate> for chrono::NaiveDate {
+    fn from(v: BirthDate) -> chrono::NaiveDate {
+        v.0
+    }
+}
 impl TryFrom<&str> for BirthDate {
     type Error = ValidationError;
 
@@ -167,5 +181,22 @@ mod tests {
     #[test]
     fn try_from_rejects_future_date() {
         assert!(BirthDate::try_from("2099-01-01").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = BirthDate::try_from("1990-06-15").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "\"1990-06-15\"");
+        let back: BirthDate = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<BirthDate, _> = serde_json::from_str("\"2099-01-01\"");
+        assert!(result.is_err());
     }
 }

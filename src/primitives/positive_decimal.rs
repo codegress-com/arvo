@@ -26,7 +26,7 @@ pub type PositiveDecimalOutput = Decimal;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "Decimal", into = "Decimal"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct PositiveDecimal(Decimal);
@@ -57,6 +57,20 @@ impl ValueObject for PositiveDecimal {
     }
 }
 
+
+impl TryFrom<Decimal> for PositiveDecimal {
+    type Error = ValidationError;
+    fn try_from(v: Decimal) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<PositiveDecimal> for Decimal {
+    fn from(v: PositiveDecimal) -> Decimal {
+        v.0
+    }
+}
 impl TryFrom<&str> for PositiveDecimal {
     type Error = ValidationError;
 
@@ -107,5 +121,21 @@ mod tests {
     #[test]
     fn try_from_rejects_zero() {
         assert!(PositiveDecimal::try_from("0").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = PositiveDecimal::try_from("3.14").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: PositiveDecimal = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<PositiveDecimal, _> = serde_json::from_str("\"0\"");
+        assert!(result.is_err());
     }
 }

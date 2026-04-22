@@ -28,7 +28,7 @@ pub type Base64StringOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Base64String(String);
@@ -65,6 +65,20 @@ impl Base64String {
     }
 }
 
+
+impl TryFrom<String> for Base64String {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Base64String> for String {
+    fn from(v: Base64String) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Base64String {
     type Error = ValidationError;
 
@@ -120,5 +134,21 @@ mod tests {
     fn try_from_str() {
         let b: Base64String = "aGVsbG8=".try_into().unwrap();
         assert_eq!(b.decode(), b"hello");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Base64String::try_from("aGVsbG8=").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Base64String = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Base64String, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

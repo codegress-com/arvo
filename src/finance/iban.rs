@@ -27,7 +27,7 @@ pub type IbanOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Iban(String);
@@ -97,6 +97,20 @@ impl Iban {
     }
 }
 
+
+impl TryFrom<String> for Iban {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Iban> for String {
+    fn from(v: Iban) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Iban {
     type Error = ValidationError;
 
@@ -197,5 +211,21 @@ mod tests {
     fn try_from_str() {
         let i: Iban = "GB82WEST12345698765432".try_into().unwrap();
         assert_eq!(i.value(), "GB82WEST12345698765432");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Iban::try_from("GB82WEST12345698765432").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Iban = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Iban, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

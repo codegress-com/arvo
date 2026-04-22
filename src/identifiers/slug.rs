@@ -26,7 +26,7 @@ pub type SlugOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Slug(String);
@@ -70,6 +70,20 @@ impl ValueObject for Slug {
     }
 }
 
+
+impl TryFrom<String> for Slug {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Slug> for String {
+    fn from(v: Slug) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Slug {
     type Error = ValidationError;
 
@@ -141,5 +155,21 @@ mod tests {
     fn try_from_str() {
         let s: Slug = "my-slug".try_into().unwrap();
         assert_eq!(s.value(), "my-slug");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Slug::try_from("hello-world").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Slug = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Slug, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

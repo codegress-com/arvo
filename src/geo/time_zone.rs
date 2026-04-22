@@ -456,7 +456,7 @@ static IANA_TIMEZONES: &[&str] = &[
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct TimeZone(String);
@@ -489,6 +489,20 @@ impl ValueObject for TimeZone {
     }
 }
 
+
+impl TryFrom<String> for TimeZone {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<TimeZone> for String {
+    fn from(v: TimeZone) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for TimeZone {
     type Error = ValidationError;
 
@@ -548,5 +562,21 @@ mod tests {
     fn try_from_str() {
         let tz: TimeZone = "Asia/Tokyo".try_into().unwrap();
         assert_eq!(tz.value(), "Asia/Tokyo");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = TimeZone::try_from("Europe/Prague").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: TimeZone = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<TimeZone, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

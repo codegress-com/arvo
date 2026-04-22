@@ -39,6 +39,20 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for Speed {
         Self::try_from(s.as_str()).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
     }
 }
+#[cfg(feature = "serde")]
+impl From<Speed> for String {
+    fn from(v: Speed) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for Speed {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for SpeedUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -72,10 +86,10 @@ pub struct SpeedInput {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Speed {
     value: f64,
     unit: SpeedUnit,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
@@ -201,5 +215,22 @@ mod tests {
     #[test]
     fn try_from_rejects_unknown_unit() {
         assert!(Speed::try_from("120 warp").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Speed::try_from("120 km/h").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Speed = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = Speed::try_from("120 km/h").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("120 km/h"));
     }
 }

@@ -23,7 +23,7 @@ pub type HttpStatusCodeOutput = u16;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "u16", into = "u16"))]
 pub struct HttpStatusCode(u16);
 
 impl ValueObject for HttpStatusCode {
@@ -77,6 +77,20 @@ impl HttpStatusCode {
     }
 }
 
+
+impl TryFrom<u16> for HttpStatusCode {
+    type Error = ValidationError;
+    fn try_from(v: u16) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<HttpStatusCode> for u16 {
+    fn from(v: HttpStatusCode) -> u16 {
+        v.0
+    }
+}
 impl TryFrom<&str> for HttpStatusCode {
     type Error = ValidationError;
 
@@ -182,5 +196,22 @@ mod tests {
     #[test]
     fn try_from_rejects_out_of_range() {
         assert!(HttpStatusCode::try_from("99").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = HttpStatusCode::new(200).unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "200");
+        let back: HttpStatusCode = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<HttpStatusCode, _> = serde_json::from_str("99");
+        assert!(result.is_err());
     }
 }

@@ -25,7 +25,7 @@ pub type ExpiryDateOutput = NaiveDate;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "chrono::NaiveDate", into = "chrono::NaiveDate"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct ExpiryDate(NaiveDate);
@@ -62,6 +62,20 @@ impl ExpiryDate {
     }
 }
 
+
+impl TryFrom<chrono::NaiveDate> for ExpiryDate {
+    type Error = ValidationError;
+    fn try_from(v: chrono::NaiveDate) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<ExpiryDate> for chrono::NaiveDate {
+    fn from(v: ExpiryDate) -> chrono::NaiveDate {
+        v.0
+    }
+}
 impl TryFrom<&str> for ExpiryDate {
     type Error = ValidationError;
 
@@ -140,5 +154,22 @@ mod tests {
     #[test]
     fn try_from_rejects_past_date() {
         assert!(ExpiryDate::try_from("2020-01-01").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = ExpiryDate::try_from("2030-12-31").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "\"2030-12-31\"");
+        let back: ExpiryDate = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<ExpiryDate, _> = serde_json::from_str("\"2020-01-01\"");
+        assert!(result.is_err());
     }
 }

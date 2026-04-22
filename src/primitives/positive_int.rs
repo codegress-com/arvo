@@ -25,7 +25,7 @@ pub type PositiveIntOutput = i64;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "i64", into = "i64"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct PositiveInt(i64);
@@ -56,6 +56,20 @@ impl ValueObject for PositiveInt {
     }
 }
 
+
+impl TryFrom<i64> for PositiveInt {
+    type Error = ValidationError;
+    fn try_from(v: i64) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<PositiveInt> for i64 {
+    fn from(v: PositiveInt) -> i64 {
+        v.0
+    }
+}
 impl TryFrom<&str> for PositiveInt {
     type Error = ValidationError;
 
@@ -111,5 +125,22 @@ mod tests {
     #[test]
     fn try_from_rejects_zero() {
         assert!(PositiveInt::try_from("0").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = PositiveInt::new(42).unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "42");
+        let back: PositiveInt = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<PositiveInt, _> = serde_json::from_str("0");
+        assert!(result.is_err());
     }
 }

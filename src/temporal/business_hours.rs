@@ -40,11 +40,11 @@ pub type BusinessHoursOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct BusinessHours {
     weekday: Weekday,
     open: NaiveTime,
     close: NaiveTime,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
@@ -174,6 +174,20 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for BusinessHours {
         Self::try_from(s.as_str()).map_err(|e| Box::new(e) as sqlx::error::BoxDynError)
     }
 }
+#[cfg(feature = "serde")]
+impl From<BusinessHours> for String {
+    fn from(v: BusinessHours) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for BusinessHours {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for BusinessHours {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)
@@ -340,5 +354,22 @@ mod tests {
     #[test]
     fn try_from_rejects_close_before_open() {
         assert!(BusinessHours::try_from("Mon 17:00–09:00").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = BusinessHours::try_from("Mon 09:00–17:00").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: BusinessHours = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = BusinessHours::try_from("Mon 09:00–17:00").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("Mon"));
     }
 }

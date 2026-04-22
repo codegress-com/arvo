@@ -26,7 +26,7 @@ pub type IpV4AddressOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct IpV4Address(String);
@@ -77,6 +77,20 @@ impl IpV4Address {
     }
 }
 
+
+impl TryFrom<String> for IpV4Address {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<IpV4Address> for String {
+    fn from(v: IpV4Address) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for IpV4Address {
     type Error = ValidationError;
 
@@ -159,5 +173,21 @@ mod tests {
     fn try_from_str() {
         let ip: IpV4Address = "10.0.0.1".try_into().unwrap();
         assert_eq!(ip.value(), "10.0.0.1");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = IpV4Address::try_from("192.168.1.1").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: IpV4Address = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<IpV4Address, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

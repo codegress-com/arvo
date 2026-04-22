@@ -25,7 +25,7 @@ pub type Ean8Output = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct Ean8(String);
@@ -84,6 +84,20 @@ impl Ean8 {
     }
 }
 
+
+impl TryFrom<String> for Ean8 {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Ean8> for String {
+    fn from(v: Ean8) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Ean8 {
     type Error = ValidationError;
 
@@ -134,5 +148,21 @@ mod tests {
     fn try_from_str() {
         let e: Ean8 = "73513537".try_into().unwrap();
         assert_eq!(e.value(), "73513537");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Ean8::try_from("96385074").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Ean8 = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Ean8, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

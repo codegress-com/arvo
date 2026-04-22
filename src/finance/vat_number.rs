@@ -31,7 +31,7 @@ static EU_PREFIXES: &[&str] = &[
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct VatNumber(String);
@@ -94,6 +94,20 @@ impl VatNumber {
     }
 }
 
+
+impl TryFrom<String> for VatNumber {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<VatNumber> for String {
+    fn from(v: VatNumber) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for VatNumber {
     type Error = ValidationError;
 

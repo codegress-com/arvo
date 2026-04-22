@@ -30,7 +30,7 @@ pub type CountryRegionOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct CountryRegion(String);
@@ -95,6 +95,20 @@ impl CountryRegion {
     }
 }
 
+
+impl TryFrom<String> for CountryRegion {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<CountryRegion> for String {
+    fn from(v: CountryRegion) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for CountryRegion {
     type Error = ValidationError;
 
@@ -171,5 +185,21 @@ mod tests {
     fn try_from_str() {
         let r: CountryRegion = "DE-BY".try_into().unwrap();
         assert_eq!(r.value(), "DE-BY");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = CountryRegion::try_from("CZ-PR").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: CountryRegion = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<CountryRegion, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

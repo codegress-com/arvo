@@ -44,7 +44,7 @@ static ISO_4217: &[&str] = &[
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct CurrencyCode(String);
@@ -81,6 +81,20 @@ impl ValueObject for CurrencyCode {
     }
 }
 
+
+impl TryFrom<String> for CurrencyCode {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<CurrencyCode> for String {
+    fn from(v: CurrencyCode) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for CurrencyCode {
     type Error = ValidationError;
 
@@ -152,5 +166,21 @@ mod tests {
     fn try_from_str() {
         let c: CurrencyCode = "GBP".try_into().unwrap();
         assert_eq!(c.value(), "GBP");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = CurrencyCode::try_from("EUR").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: CurrencyCode = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<CurrencyCode, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

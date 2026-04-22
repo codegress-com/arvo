@@ -26,7 +26,7 @@ pub type UnixTimestampOutput = i64;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "i64", into = "i64"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct UnixTimestamp(i64);
@@ -62,6 +62,20 @@ impl UnixTimestamp {
     }
 }
 
+
+impl TryFrom<i64> for UnixTimestamp {
+    type Error = ValidationError;
+    fn try_from(v: i64) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<UnixTimestamp> for i64 {
+    fn from(v: UnixTimestamp) -> i64 {
+        v.0
+    }
+}
 impl TryFrom<&str> for UnixTimestamp {
     type Error = ValidationError;
 
@@ -136,5 +150,22 @@ mod tests {
     #[test]
     fn try_from_rejects_negative() {
         assert!(UnixTimestamp::try_from("-1").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = UnixTimestamp::new(1_700_000_000).unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "1700000000");
+        let back: UnixTimestamp = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<UnixTimestamp, _> = serde_json::from_str("-1");
+        assert!(result.is_err());
     }
 }

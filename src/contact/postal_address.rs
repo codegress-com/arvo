@@ -5,6 +5,7 @@ use super::country_code::CountryCode;
 
 /// Input type for [`PostalAddress`] construction.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PostalAddressInput {
     /// Street name and number, e.g. `"Václavské náměstí 1"`.
     pub street: String,
@@ -52,13 +53,12 @@ pub type PostalAddressOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "PostalAddressInput", into = "PostalAddressInput"))]
 pub struct PostalAddress {
     street: String,
     city: String,
     zip: String,
     country: CountryCode,
-    /// Pre-computed display string.
-    #[cfg_attr(feature = "serde", serde(skip))]
     formatted: String,
 }
 
@@ -126,6 +126,20 @@ impl PostalAddress {
     /// Returns the country code, e.g. `CountryCode("CZ")`.
     pub fn country(&self) -> &CountryCode {
         &self.country
+    }
+}
+
+impl TryFrom<PostalAddressInput> for PostalAddress {
+    type Error = ValidationError;
+    fn try_from(input: PostalAddressInput) -> Result<Self, Self::Error> {
+        Self::new(input)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<PostalAddress> for PostalAddressInput {
+    fn from(a: PostalAddress) -> PostalAddressInput {
+        a.into_inner()
     }
 }
 
@@ -232,5 +246,21 @@ mod tests {
         let a = PostalAddress::new(valid_input()).unwrap();
         let b = PostalAddress::new(valid_input()).unwrap();
         assert_eq!(a, b);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let addr = PostalAddress::new(valid_input()).unwrap();
+        let json = serde_json::to_string(&addr).unwrap();
+        let back: PostalAddress = serde_json::from_str(&json).unwrap();
+        assert_eq!(addr.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<PostalAddress, _> = serde_json::from_str(r#"{"street":"","city":"Prague","zip":"110 00","country":"CZ"}"#);
+        assert!(result.is_err());
     }
 }

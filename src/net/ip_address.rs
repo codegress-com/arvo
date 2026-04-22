@@ -29,7 +29,7 @@ pub type IpAddressOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 #[cfg_attr(feature = "sql", derive(sqlx::Type))]
 #[cfg_attr(feature = "sql", sqlx(transparent))]
 pub struct IpAddress(String);
@@ -78,6 +78,20 @@ impl IpAddress {
     }
 }
 
+
+impl TryFrom<String> for IpAddress {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<IpAddress> for String {
+    fn from(v: IpAddress) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for IpAddress {
     type Error = ValidationError;
 
