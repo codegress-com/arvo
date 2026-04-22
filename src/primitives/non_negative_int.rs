@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`NonNegativeInt`].
 pub type NonNegativeIntInput = i64;
 
-/// Output type for [`NonNegativeInt`].
-
 /// A non-negative integer (`i64 >= 0`).
 ///
 /// Negative values are rejected on construction. Zero is allowed.
@@ -70,7 +68,10 @@ impl TryFrom<&str> for NonNegativeInt {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = value.trim().parse::<i64>().map_err(|_| ValidationError::invalid("NonNegativeInt", value))?;
+        let parsed = value
+            .trim()
+            .parse::<i64>()
+            .map_err(|_| ValidationError::invalid("NonNegativeInt", value))?;
         Self::new(parsed)
     }
 }

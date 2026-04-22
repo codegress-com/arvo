@@ -6,8 +6,6 @@ use regex::Regex;
 /// Input type for [`EmailAddress`] — a raw string before validation.
 pub type EmailAddressInput = String;
 
-/// Output type for [`EmailAddress`] — a normalised lowercase string.
-
 /// Compiled email regex — evaluated once at first use.
 ///
 /// Pattern checks for a local part, `@`, a domain, and a TLD of at least
@@ -78,7 +76,6 @@ impl EmailAddress {
 }
 
 /// Allows ergonomic construction from a string literal: `"a@b.com".try_into()`
-
 impl TryFrom<String> for EmailAddress {
     type Error = ValidationError;
     fn try_from(s: String) -> Result<Self, Self::Error> {

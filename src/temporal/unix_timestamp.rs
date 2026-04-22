@@ -6,8 +6,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`UnixTimestamp`].
 pub type UnixTimestampInput = i64;
 
-/// Output type for [`UnixTimestamp`].
-
 /// A validated Unix timestamp — non-negative seconds since the Unix epoch.
 ///
 /// Negative values (pre-1970) are rejected.
@@ -56,7 +54,9 @@ impl PrimitiveValue for UnixTimestamp {
 impl UnixTimestamp {
     /// Converts to a `DateTime<Utc>`.
     pub fn as_datetime(&self) -> DateTime<Utc> {
-        Utc.timestamp_opt(self.0, 0).single().expect("valid timestamp")
+        Utc.timestamp_opt(self.0, 0)
+            .single()
+            .expect("valid timestamp")
     }
 }
 
@@ -77,7 +77,10 @@ impl TryFrom<&str> for UnixTimestamp {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = value.trim().parse::<i64>().map_err(|_| ValidationError::invalid("UnixTimestamp", value))?;
+        let parsed = value
+            .trim()
+            .parse::<i64>()
+            .map_err(|_| ValidationError::invalid("UnixTimestamp", value))?;
         Self::new(parsed)
     }
 }

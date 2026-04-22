@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Iban`].
 pub type IbanInput = String;
 
-/// Output type for [`Iban`] — canonical uppercase string without spaces.
-
 /// A validated IBAN (International Bank Account Number).
 ///
 /// On construction all spaces are stripped and the value is uppercased. The

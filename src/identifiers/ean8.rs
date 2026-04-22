@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Ean8`].
 pub type Ean8Input = String;
 
-/// Output type for [`Ean8`] — 8 bare digits.
-
 /// A validated EAN-8 barcode number.
 ///
 /// Spaces and hyphens are stripped on construction. The 8th digit is the

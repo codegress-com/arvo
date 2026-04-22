@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`TimeZone`].
 pub type TimeZoneInput = String;
 
-/// Output type for [`TimeZone`].
-
 /// Sorted list of canonical IANA timezone names.
 static IANA_TIMEZONES: &[&str] = &[
     "Africa/Abidjan",

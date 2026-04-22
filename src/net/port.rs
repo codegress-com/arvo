@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Port`].
 pub type PortInput = u16;
 
-/// Output type for [`Port`].
-
 /// A validated network port number in the range `1..=65535`.
 ///
 /// Port 0 is reserved and rejected.
@@ -82,7 +80,10 @@ impl TryFrom<&str> for Port {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = value.trim().parse::<u16>().map_err(|_| ValidationError::invalid("Port", value))?;
+        let parsed = value
+            .trim()
+            .parse::<u16>()
+            .map_err(|_| ValidationError::invalid("Port", value))?;
         Self::new(parsed)
     }
 }

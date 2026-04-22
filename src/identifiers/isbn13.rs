@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Isbn13`].
 pub type Isbn13Input = String;
 
-/// Output type for [`Isbn13`] — 13 bare digits.
-
 /// A validated ISBN-13 number.
 ///
 /// Hyphens and spaces are stripped on construction. Must start with `978`

@@ -5,8 +5,6 @@ use std::net::Ipv6Addr;
 /// Input type for [`IpV6Address`].
 pub type IpV6AddressInput = String;
 
-/// Output type for [`IpV6Address`].
-
 /// A validated IPv6 address (e.g. `"2001:db8::1"`).
 ///
 /// **Normalisation:** trimmed; the address is stored in the canonical

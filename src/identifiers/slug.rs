@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Slug`].
 pub type SlugInput = String;
 
-/// Output type for [`Slug`].
-
 /// A URL-safe slug: lowercase alphanumeric characters and hyphens only.
 ///
 /// On construction the value is trimmed and lowercased. Consecutive hyphens

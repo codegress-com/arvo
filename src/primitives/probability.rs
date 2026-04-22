@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Probability`].
 pub type ProbabilityInput = f64;
 
-/// Output type for [`Probability`].
-
 /// A probability value in the range `0.0..=1.0`.
 ///
 /// NaN, infinite values, and values outside `[0.0, 1.0]` are rejected.
@@ -71,7 +69,10 @@ impl TryFrom<&str> for Probability {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = value.trim().parse::<f64>().map_err(|_| ValidationError::invalid("Probability", value))?;
+        let parsed = value
+            .trim()
+            .parse::<f64>()
+            .map_err(|_| ValidationError::invalid("Probability", value))?;
         Self::new(parsed)
     }
 }

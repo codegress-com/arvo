@@ -249,7 +249,8 @@ mod tests {
 
     #[test]
     fn try_from_parses_valid() {
-        let bbox = BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
+        let bbox =
+            BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
         assert!(bbox.value().starts_with("SW:"));
         assert!(bbox.value().contains("NE:"));
     }
@@ -261,13 +262,16 @@ mod tests {
 
     #[test]
     fn try_from_rejects_sw_north_of_ne() {
-        assert!(BoundingBox::try_from("SW: 52.000000, 14.000000 / NE: 51.000000, 18.000000").is_err());
+        assert!(
+            BoundingBox::try_from("SW: 52.000000, 14.000000 / NE: 51.000000, 18.000000").is_err()
+        );
     }
 
     #[cfg(feature = "serde")]
     #[test]
     fn serde_roundtrip() {
-        let v = BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
+        let v =
+            BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
         let json = serde_json::to_string(&v).unwrap();
         let back: BoundingBox = serde_json::from_str(&json).unwrap();
         assert_eq!(v.value(), back.value());
@@ -276,7 +280,8 @@ mod tests {
     #[cfg(feature = "serde")]
     #[test]
     fn serde_serializes_as_canonical_string() {
-        let v = BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
+        let v =
+            BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
         let json = serde_json::to_string(&v).unwrap();
         assert!(json.contains("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000"));
     }

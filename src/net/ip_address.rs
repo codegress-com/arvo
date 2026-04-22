@@ -6,8 +6,6 @@ use super::{IpV4Address, IpV6Address};
 /// Input for [`IpAddress`] — either a v4 or v6 address string.
 pub type IpAddressInput = String;
 
-/// Output type for [`IpAddress`].
-
 /// A validated IP address — either IPv4 or IPv6.
 ///
 /// Tries IPv4 first, then IPv6. The canonical string is stored normalised.

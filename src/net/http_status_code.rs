@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`HttpStatusCode`].
 pub type HttpStatusCodeInput = u16;
 
-/// Output type for [`HttpStatusCode`].
-
 /// A validated HTTP status code in the range `100..=599`.
 ///
 /// # Example
@@ -94,7 +92,10 @@ impl TryFrom<&str> for HttpStatusCode {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = value.trim().parse::<u16>().map_err(|_| ValidationError::invalid("HttpStatusCode", value))?;
+        let parsed = value
+            .trim()
+            .parse::<u16>()
+            .map_err(|_| ValidationError::invalid("HttpStatusCode", value))?;
         Self::new(parsed)
     }
 }

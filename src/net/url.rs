@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Url`].
 pub type UrlInput = String;
 
-/// Output type for [`Url`].
-
 /// A validated URL. Accepts `http`, `https`, `ftp`, `ftps`, `ws`, and `wss` schemes.
 /// Scheme and host are normalised to lowercase on construction.
 ///

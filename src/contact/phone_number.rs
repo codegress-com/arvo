@@ -14,8 +14,6 @@ pub struct PhoneNumberInput {
     pub number: String,
 }
 
-/// Output type for [`PhoneNumber`] — canonical E.164 string, e.g. `"+420123456789"`.
-
 /// Validates the local number part: digits only, 4–14 characters.
 static NUMBER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4,14}$").unwrap());
 
@@ -74,9 +72,8 @@ impl ValueObject for PhoneNumber {
             return Err(ValidationError::invalid("PhoneNumber", &number));
         }
 
-        let prefix = calling_code(value.country_code.value()).ok_or_else(|| {
-            ValidationError::invalid("PhoneNumber", value.country_code.value())
-        })?;
+        let prefix = calling_code(value.country_code.value())
+            .ok_or_else(|| ValidationError::invalid("PhoneNumber", value.country_code.value()))?;
         let e164 = format!("{}{}", prefix, number);
 
         Ok(Self {

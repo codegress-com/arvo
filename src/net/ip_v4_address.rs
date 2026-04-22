@@ -5,8 +5,6 @@ use std::net::Ipv4Addr;
 /// Input type for [`IpV4Address`].
 pub type IpV4AddressInput = String;
 
-/// Output type for [`IpV4Address`].
-
 /// A validated IPv4 address (e.g. `"192.168.1.1"`).
 ///
 /// **Normalisation:** trimmed. Leading zeros in octets are rejected
@@ -66,12 +64,18 @@ impl PrimitiveValue for IpV4Address {
 impl IpV4Address {
     /// Returns `true` for loopback addresses (`127.0.0.0/8`).
     pub fn is_loopback(&self) -> bool {
-        self.0.parse::<std::net::Ipv4Addr>().map(|ip| ip.is_loopback()).unwrap_or(false)
+        self.0
+            .parse::<std::net::Ipv4Addr>()
+            .map(|ip| ip.is_loopback())
+            .unwrap_or(false)
     }
 
     /// Returns `true` for private addresses (10/8, 172.16/12, 192.168/16).
     pub fn is_private(&self) -> bool {
-        self.0.parse::<std::net::Ipv4Addr>().map(|ip| ip.is_private()).unwrap_or(false)
+        self.0
+            .parse::<std::net::Ipv4Addr>()
+            .map(|ip| ip.is_private())
+            .unwrap_or(false)
     }
 }
 
@@ -155,7 +159,11 @@ mod tests {
     #[test]
     fn is_loopback() {
         assert!(IpV4Address::new("127.0.0.1".into()).unwrap().is_loopback());
-        assert!(!IpV4Address::new("192.168.1.1".into()).unwrap().is_loopback());
+        assert!(
+            !IpV4Address::new("192.168.1.1".into())
+                .unwrap()
+                .is_loopback()
+        );
     }
 
     #[test]

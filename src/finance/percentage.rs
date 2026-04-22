@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Percentage`].
 pub type PercentageInput = f64;
 
-/// Output type for [`Percentage`].
-
 /// A validated percentage value in the range `0.0..=100.0`.
 ///
 /// The value must be finite (not NaN, not infinite) and within the inclusive
@@ -80,7 +78,10 @@ impl TryFrom<&str> for Percentage {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = value.trim().parse::<f64>().map_err(|_| ValidationError::invalid("Percentage", value))?;
+        let parsed = value
+            .trim()
+            .parse::<f64>()
+            .map_err(|_| ValidationError::invalid("Percentage", value))?;
         Self::new(parsed)
     }
 }

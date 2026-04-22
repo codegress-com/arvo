@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`PositiveInt`].
 pub type PositiveIntInput = i64;
 
-/// Output type for [`PositiveInt`].
-
 /// A strictly positive integer (`i64 > 0`).
 ///
 /// Zero and negative values are rejected on construction.
@@ -71,7 +69,10 @@ impl TryFrom<&str> for PositiveInt {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = value.trim().parse::<i64>().map_err(|_| ValidationError::invalid("PositiveInt", value))?;
+        let parsed = value
+            .trim()
+            .parse::<i64>()
+            .map_err(|_| ValidationError::invalid("PositiveInt", value))?;
         Self::new(parsed)
     }
 }

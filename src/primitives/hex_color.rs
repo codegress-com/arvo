@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`HexColor`].
 pub type HexColorInput = String;
 
-/// Output type for [`HexColor`] — always a 7-character `#RRGGBB` string.
-
 /// A CSS hex color in canonical `#RRGGBB` form, normalised to uppercase.
 ///
 /// Accepts both 6-digit (`#FF0000`) and 3-digit shorthand (`#F00`) input.

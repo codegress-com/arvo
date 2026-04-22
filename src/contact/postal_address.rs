@@ -17,8 +17,6 @@ pub struct PostalAddressInput {
     pub country: CountryCode,
 }
 
-/// Output type for [`PostalAddress`] — a human-readable multi-line string.
-
 /// A validated postal address.
 ///
 /// All text fields (`street`, `city`, `zip`) must be non-empty after trimming.
@@ -52,7 +50,10 @@ pub struct PostalAddressInput {
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(try_from = "PostalAddressInput", into = "PostalAddressInput"))]
+#[cfg_attr(
+    feature = "serde",
+    serde(try_from = "PostalAddressInput", into = "PostalAddressInput")
+)]
 pub struct PostalAddress {
     street: String,
     city: String,
@@ -258,7 +259,8 @@ mod tests {
     #[cfg(feature = "serde")]
     #[test]
     fn serde_deserialize_validates() {
-        let result: Result<PostalAddress, _> = serde_json::from_str(r#"{"street":"","city":"Prague","zip":"110 00","country":"CZ"}"#);
+        let result: Result<PostalAddress, _> =
+            serde_json::from_str(r#"{"street":"","city":"Prague","zip":"110 00","country":"CZ"}"#);
         assert!(result.is_err());
     }
 }

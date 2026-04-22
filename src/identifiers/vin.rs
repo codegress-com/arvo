@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Vin`].
 pub type VinInput = String;
 
-/// Output type for [`Vin`] — 17 uppercase characters.
-
 /// A validated Vehicle Identification Number (VIN) per ISO 3779.
 ///
 /// Trimmed and uppercased on construction. Must be exactly 17 characters

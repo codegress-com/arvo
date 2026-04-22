@@ -5,8 +5,6 @@ use url::Url;
 /// Input type for [`Website`] — a raw string before validation.
 pub type WebsiteInput = String;
 
-/// Output type for [`Website`] — a normalised URL string.
-
 /// A validated website URL.
 ///
 /// Accepts `http` and `https` schemes only. On construction the value is
@@ -85,7 +83,6 @@ impl Website {
 }
 
 /// Allows ergonomic construction from a string literal: `"https://example.com".try_into()`
-
 impl TryFrom<String> for Website {
     type Error = ValidationError;
     fn try_from(s: String) -> Result<Self, Self::Error> {

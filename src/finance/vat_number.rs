@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`VatNumber`].
 pub type VatNumberInput = String;
 
-/// Output type for [`VatNumber`] — canonical uppercase string without spaces.
-
 /// EU VAT country prefixes (sorted for binary search).
 static EU_PREFIXES: &[&str] = &[
     "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "EL", "ES", "FI", "FR", "HR", "HU", "IE", "IT",

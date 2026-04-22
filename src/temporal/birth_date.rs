@@ -6,8 +6,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`BirthDate`].
 pub type BirthDateInput = NaiveDate;
 
-/// Output type for [`BirthDate`].
-
 /// A validated date of birth.
 ///
 /// The date must be strictly in the past and no more than 150 years before
@@ -26,7 +24,10 @@ pub type BirthDateInput = NaiveDate;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(try_from = "chrono::NaiveDate", into = "chrono::NaiveDate"))]
+#[cfg_attr(
+    feature = "serde",
+    serde(try_from = "chrono::NaiveDate", into = "chrono::NaiveDate")
+)]
 pub struct BirthDate(NaiveDate);
 
 impl ValueObject for BirthDate {
@@ -98,7 +99,8 @@ impl TryFrom<&str> for BirthDate {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = chrono::NaiveDate::parse_from_str(value.trim(), "%Y-%m-%d").map_err(|_| ValidationError::invalid("BirthDate", value))?;
+        let parsed = chrono::NaiveDate::parse_from_str(value.trim(), "%Y-%m-%d")
+            .map_err(|_| ValidationError::invalid("BirthDate", value))?;
         Self::new(parsed)
     }
 }

@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Ean13`].
 pub type Ean13Input = String;
 
-/// Output type for [`Ean13`] — 13 bare digits.
-
 /// A validated EAN-13 barcode number.
 ///
 /// Spaces and hyphens are stripped on construction. The 13th digit is the

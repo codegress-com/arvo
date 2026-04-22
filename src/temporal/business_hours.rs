@@ -14,8 +14,6 @@ pub struct BusinessHoursInput {
     pub close: NaiveTime,
 }
 
-/// Output type for [`BusinessHours`] — canonical `"<Day> HH:MM–HH:MM"` string.
-
 /// Validated business hours for a single weekday.
 ///
 /// `open` must be strictly before `close`. The canonical output is formatted
@@ -138,9 +136,15 @@ impl TryFrom<&str> for BusinessHours {
             _ => return Err(err()),
         };
         let (open_str, close_str) = times_str.split_once('\u{2013}').ok_or_else(err)?;
-        let open = chrono::NaiveTime::parse_from_str(open_str.trim(), "%H:%M").map_err(|_| err())?;
-        let close = chrono::NaiveTime::parse_from_str(close_str.trim(), "%H:%M").map_err(|_| err())?;
-        Self::new(BusinessHoursInput { weekday, open, close })
+        let open =
+            chrono::NaiveTime::parse_from_str(open_str.trim(), "%H:%M").map_err(|_| err())?;
+        let close =
+            chrono::NaiveTime::parse_from_str(close_str.trim(), "%H:%M").map_err(|_| err())?;
+        Self::new(BusinessHoursInput {
+            weekday,
+            open,
+            close,
+        })
     }
 }
 

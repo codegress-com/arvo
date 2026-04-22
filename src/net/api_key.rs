@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`ApiKey`].
 pub type ApiKeyInput = String;
 
-/// Output type for [`ApiKey`].
-
 /// A validated API key — non-empty, trimmed.
 ///
 /// `Display` shows a masked version with only the last 4 characters visible

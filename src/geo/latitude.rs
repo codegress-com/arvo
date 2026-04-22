@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Latitude`].
 pub type LatitudeInput = f64;
 
-/// Output type for [`Latitude`].
-
 /// A validated geographic latitude in decimal degrees.
 ///
 /// The value must be finite and in the inclusive range `−90.0..=90.0`.
@@ -69,7 +67,10 @@ impl TryFrom<&str> for Latitude {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = value.trim().parse::<f64>().map_err(|_| ValidationError::invalid("Latitude", value))?;
+        let parsed = value
+            .trim()
+            .parse::<f64>()
+            .map_err(|_| ValidationError::invalid("Latitude", value))?;
         Self::new(parsed)
     }
 }

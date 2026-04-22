@@ -12,8 +12,6 @@ pub struct TimeRangeInput {
     pub end: DateTime<Utc>,
 }
 
-/// Output type for [`TimeRange`] — canonical `"<start> / <end>"` string.
-
 /// A validated time range with a start strictly before its end.
 ///
 /// Both `start` and `end` are `chrono::DateTime<Utc>`. The canonical output
@@ -222,44 +220,76 @@ mod tests {
 
     #[test]
     fn contains_inside() {
-        let r = TimeRange::new(TimeRangeInput { start: start(), end: end() }).unwrap();
+        let r = TimeRange::new(TimeRangeInput {
+            start: start(),
+            end: end(),
+        })
+        .unwrap();
         let mid = Utc.with_ymd_and_hms(2025, 1, 1, 11, 0, 0).unwrap();
         assert!(r.contains(&mid));
     }
 
     #[test]
     fn contains_at_start_inclusive() {
-        let r = TimeRange::new(TimeRangeInput { start: start(), end: end() }).unwrap();
+        let r = TimeRange::new(TimeRangeInput {
+            start: start(),
+            end: end(),
+        })
+        .unwrap();
         assert!(r.contains(&start()));
     }
 
     #[test]
     fn contains_at_end_exclusive() {
-        let r = TimeRange::new(TimeRangeInput { start: start(), end: end() }).unwrap();
+        let r = TimeRange::new(TimeRangeInput {
+            start: start(),
+            end: end(),
+        })
+        .unwrap();
         assert!(!r.contains(&end()));
     }
 
     #[test]
     fn contains_outside() {
-        let r = TimeRange::new(TimeRangeInput { start: start(), end: end() }).unwrap();
+        let r = TimeRange::new(TimeRangeInput {
+            start: start(),
+            end: end(),
+        })
+        .unwrap();
         let before = Utc.with_ymd_and_hms(2025, 1, 1, 9, 0, 0).unwrap();
         assert!(!r.contains(&before));
     }
 
     #[test]
     fn overlaps_true() {
-        let r1 = TimeRange::new(TimeRangeInput { start: start(), end: end() }).unwrap();
+        let r1 = TimeRange::new(TimeRangeInput {
+            start: start(),
+            end: end(),
+        })
+        .unwrap();
         let overlap_start = Utc.with_ymd_and_hms(2025, 1, 1, 11, 0, 0).unwrap();
         let overlap_end = Utc.with_ymd_and_hms(2025, 1, 1, 13, 0, 0).unwrap();
-        let r2 = TimeRange::new(TimeRangeInput { start: overlap_start, end: overlap_end }).unwrap();
+        let r2 = TimeRange::new(TimeRangeInput {
+            start: overlap_start,
+            end: overlap_end,
+        })
+        .unwrap();
         assert!(r1.overlaps(&r2));
     }
 
     #[test]
     fn overlaps_adjacent_no_overlap() {
-        let r1 = TimeRange::new(TimeRangeInput { start: start(), end: end() }).unwrap();
+        let r1 = TimeRange::new(TimeRangeInput {
+            start: start(),
+            end: end(),
+        })
+        .unwrap();
         let after_end = Utc.with_ymd_and_hms(2025, 1, 1, 13, 0, 0).unwrap();
-        let r2 = TimeRange::new(TimeRangeInput { start: end(), end: after_end }).unwrap();
+        let r2 = TimeRange::new(TimeRangeInput {
+            start: end(),
+            end: after_end,
+        })
+        .unwrap();
         assert!(!r1.overlaps(&r2));
     }
 

@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`NonEmptyString`].
 pub type NonEmptyStringInput = String;
 
-/// Output type for [`NonEmptyString`].
-
 /// A non-empty, trimmed string.
 ///
 /// Surrounding whitespace is stripped on construction. A string that consists

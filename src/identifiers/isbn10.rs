@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Isbn10`].
 pub type Isbn10Input = String;
 
-/// Output type for [`Isbn10`] — 10 characters (9 digits + check char `0–9` or `X`).
-
 /// A validated ISBN-10 number.
 ///
 /// Hyphens and spaces are stripped on construction. The check character

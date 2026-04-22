@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`MimeType`].
 pub type MimeTypeInput = String;
 
-/// Output type for [`MimeType`].
-
 /// A validated MIME type (e.g. `"image/png"`, `"application/json"`).
 ///
 /// **Normalisation:** trimmed, lowercased.

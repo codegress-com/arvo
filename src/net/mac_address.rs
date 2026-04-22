@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`MacAddress`].
 pub type MacAddressInput = String;
 
-/// Output type for [`MacAddress`].
-
 /// A validated MAC address, normalised to lowercase colon-separated hex.
 ///
 /// **Normalisation:** accepts colon-separated (`AA:BB:CC:DD:EE:FF`),

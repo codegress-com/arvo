@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Domain`].
 pub type DomainInput = String;
 
-/// Output type for [`Domain`].
-
 /// A validated domain name without a scheme (e.g. `"example.com"`).
 ///
 /// **Normalisation:** trimmed, lowercased.

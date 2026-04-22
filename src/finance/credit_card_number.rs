@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`CreditCardNumber`].
 pub type CreditCardNumberInput = String;
 
-/// Output type for [`CreditCardNumber`] — digits only, no separators.
-
 /// A validated credit card number using the Luhn algorithm.
 ///
 /// On construction spaces and hyphens are stripped; only digits are kept.

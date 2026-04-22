@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`CountryRegion`].
 pub type CountryRegionInput = String;
 
-/// Output type for [`CountryRegion`].
-
 /// A validated ISO 3166-2 subdivision code.
 ///
 /// **Format:** two uppercase ASCII letters (country code), a hyphen, then

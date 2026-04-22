@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Locale`].
 pub type LocaleInput = String;
 
-/// Output type for [`Locale`] — BCP 47 canonical form, e.g. `"en-US"`.
-
 /// A BCP 47 language tag (e.g. `"en-US"`, `"cs-CZ"`, `"fr"`).
 ///
 /// Accepts both `-` and `_` as separators. On construction, the language

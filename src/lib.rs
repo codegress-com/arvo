@@ -71,57 +71,61 @@ pub mod temporal;
 /// Add `use arvo::prelude::*;` to bring the `ValueObject` trait and
 /// the most common value object types into scope without long paths.
 pub mod prelude {
- pub use crate::errors::ValidationError;
- pub use crate::traits::{PrimitiveValue, ValueObject};
+    pub use crate::errors::ValidationError;
+    pub use crate::traits::{PrimitiveValue, ValueObject};
 
- #[cfg(feature = "contact")]
- pub use crate::contact::{
- CountryCode, CountryCodeInput, EmailAddress, EmailAddressInput,
- PhoneNumber, PhoneNumberInput, PostalAddress,
- PostalAddressInput, Website, WebsiteInput };
+    #[cfg(feature = "contact")]
+    pub use crate::contact::{
+        CountryCode, CountryCodeInput, EmailAddress, EmailAddressInput, PhoneNumber,
+        PhoneNumberInput, PostalAddress, PostalAddressInput, Website, WebsiteInput,
+    };
 
- #[cfg(feature = "finance")]
- pub use crate::finance::{
- Bic, BicInput, CardExpiryDate, CardExpiryDateInput, CreditCardNumber, CreditCardNumberInput, CurrencyCode,
- CurrencyCodeInput, ExchangeRate, ExchangeRateInput, Iban, IbanInput, Money, MoneyInput, Percentage, PercentageInput,
- VatNumber, VatNumberInput };
+    #[cfg(feature = "finance")]
+    pub use crate::finance::{
+        Bic, BicInput, CardExpiryDate, CardExpiryDateInput, CreditCardNumber,
+        CreditCardNumberInput, CurrencyCode, CurrencyCodeInput, ExchangeRate, ExchangeRateInput,
+        Iban, IbanInput, Money, MoneyInput, Percentage, PercentageInput, VatNumber, VatNumberInput,
+    };
 
- #[cfg(feature = "geo")]
- pub use crate::geo::{
- BoundingBox, BoundingBoxInput, Coordinate, CoordinateInput, CountryRegion,
- CountryRegionInput, Latitude, LatitudeInput, Longitude, LongitudeInput, TimeZone, TimeZoneInput };
+    #[cfg(feature = "geo")]
+    pub use crate::geo::{
+        BoundingBox, BoundingBoxInput, Coordinate, CoordinateInput, CountryRegion,
+        CountryRegionInput, Latitude, LatitudeInput, Longitude, LongitudeInput, TimeZone,
+        TimeZoneInput,
+    };
 
- #[cfg(feature = "identifiers")]
- pub use crate::identifiers::{
- Ean8, Ean8Input, Ean13, Ean13Input, Isbn10, Isbn10Input,
- Isbn13, Isbn13Input, Issn, IssnInput, Slug,
- SlugInput, Vin, VinInput };
+    #[cfg(feature = "identifiers")]
+    pub use crate::identifiers::{
+        Ean8, Ean8Input, Ean13, Ean13Input, Isbn10, Isbn10Input, Isbn13, Isbn13Input, Issn,
+        IssnInput, Slug, SlugInput, Vin, VinInput,
+    };
 
- #[cfg(feature = "measurement")]
- pub use crate::measurement::{
- Area, AreaInput, AreaUnit, Energy, EnergyInput, EnergyUnit, Frequency, FrequencyInput,
- FrequencyUnit, Length, LengthInput, LengthUnit, Power, PowerInput, PowerUnit, Pressure,
- PressureInput, PressureUnit, Speed, SpeedInput, SpeedUnit, Temperature, TemperatureInput,
- TemperatureUnit, Volume, VolumeInput, VolumeUnit, Weight, WeightInput, WeightUnit };
+    #[cfg(feature = "measurement")]
+    pub use crate::measurement::{
+        Area, AreaInput, AreaUnit, Energy, EnergyInput, EnergyUnit, Frequency, FrequencyInput,
+        FrequencyUnit, Length, LengthInput, LengthUnit, Power, PowerInput, PowerUnit, Pressure,
+        PressureInput, PressureUnit, Speed, SpeedInput, SpeedUnit, Temperature, TemperatureInput,
+        TemperatureUnit, Volume, VolumeInput, VolumeUnit, Weight, WeightInput, WeightUnit,
+    };
 
- #[cfg(feature = "net")]
- pub use crate::net::{
- ApiKey, ApiKeyInput, Domain, DomainInput, HttpStatusCode,
- HttpStatusCodeInput, IpAddress, IpAddressInput, IpV4Address, IpV4AddressInput, IpV6Address, IpV6AddressInput,
- MacAddress, MacAddressInput, MimeType, MimeTypeInput,
- Port, PortInput, Url, UrlInput };
+    #[cfg(feature = "net")]
+    pub use crate::net::{
+        ApiKey, ApiKeyInput, Domain, DomainInput, HttpStatusCode, HttpStatusCodeInput, IpAddress,
+        IpAddressInput, IpV4Address, IpV4AddressInput, IpV6Address, IpV6AddressInput, MacAddress,
+        MacAddressInput, MimeType, MimeTypeInput, Port, PortInput, Url, UrlInput,
+    };
 
- #[cfg(feature = "primitives")]
- pub use crate::primitives::{
- Base64String, Base64StringInput, BoundedString, HexColor, HexColorInput,
- Locale, LocaleInput, NonEmptyString, NonEmptyStringInput,
- NonNegativeDecimal, NonNegativeDecimalInput, NonNegativeInt, NonNegativeIntInput, PositiveDecimal,
- PositiveDecimalInput, PositiveInt, PositiveIntInput,
- Probability, ProbabilityInput };
+    #[cfg(feature = "primitives")]
+    pub use crate::primitives::{
+        Base64String, Base64StringInput, BoundedString, HexColor, HexColorInput, Locale,
+        LocaleInput, NonEmptyString, NonEmptyStringInput, NonNegativeDecimal,
+        NonNegativeDecimalInput, NonNegativeInt, NonNegativeIntInput, PositiveDecimal,
+        PositiveDecimalInput, PositiveInt, PositiveIntInput, Probability, ProbabilityInput,
+    };
 
- #[cfg(feature = "temporal")]
- pub use crate::temporal::{
- BirthDate, BirthDateInput, BusinessHours, BusinessHoursInput,
- ExpiryDate, ExpiryDateInput, TimeRange,
- TimeRangeInput, UnixTimestamp, UnixTimestampInput };
+    #[cfg(feature = "temporal")]
+    pub use crate::temporal::{
+        BirthDate, BirthDateInput, BusinessHours, BusinessHoursInput, ExpiryDate, ExpiryDateInput,
+        TimeRange, TimeRangeInput, UnixTimestamp, UnixTimestampInput,
+    };
 }

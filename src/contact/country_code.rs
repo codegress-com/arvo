@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`CountryCode`] — a raw string before validation.
 pub type CountryCodeInput = String;
 
-/// Output type for [`CountryCode`] — a normalised uppercase string.
-
 /// A validated ISO 3166-1 alpha-2 country code.
 ///
 /// On construction the value is trimmed and uppercased, so `"cz"` and `"CZ"`
@@ -58,7 +56,6 @@ impl PrimitiveValue for CountryCode {
 }
 
 /// Allows ergonomic construction from a string literal: `"CZ".try_into()`
-
 impl TryFrom<String> for CountryCode {
     type Error = ValidationError;
     fn try_from(s: String) -> Result<Self, Self::Error> {

@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`CurrencyCode`].
 pub type CurrencyCodeInput = String;
 
-/// Output type for [`CurrencyCode`].
-
 /// Active ISO 4217 alphabetic currency codes, sorted for binary search.
 static ISO_4217: &[&str] = &[
     "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AUD", "AWG", "AZN", "BAM", "BBD", "BDT",

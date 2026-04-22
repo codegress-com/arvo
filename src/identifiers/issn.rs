@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Issn`].
 pub type IssnInput = String;
 
-/// Output type for [`Issn`] — canonical `XXXX-XXXX` form.
-
 /// A validated ISSN (International Standard Serial Number).
 ///
 /// Spaces and hyphens are stripped on construction. The check character

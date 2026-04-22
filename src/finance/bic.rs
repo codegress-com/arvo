@@ -4,8 +4,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`Bic`].
 pub type BicInput = String;
 
-/// Output type for [`Bic`] — canonical uppercase string.
-
 /// A validated BIC (Bank Identifier Code), also known as SWIFT code.
 ///
 /// On construction the input is trimmed and uppercased. A BIC is either 8 or

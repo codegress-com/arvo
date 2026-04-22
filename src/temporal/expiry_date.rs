@@ -6,8 +6,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`ExpiryDate`].
 pub type ExpiryDateInput = NaiveDate;
 
-/// Output type for [`ExpiryDate`].
-
 /// A validated expiry date that is strictly in the future.
 ///
 /// The date must be after today at construction time.
@@ -24,7 +22,10 @@ pub type ExpiryDateInput = NaiveDate;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(try_from = "chrono::NaiveDate", into = "chrono::NaiveDate"))]
+#[cfg_attr(
+    feature = "serde",
+    serde(try_from = "chrono::NaiveDate", into = "chrono::NaiveDate")
+)]
 pub struct ExpiryDate(NaiveDate);
 
 impl ValueObject for ExpiryDate {
@@ -77,7 +78,8 @@ impl TryFrom<&str> for ExpiryDate {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = chrono::NaiveDate::parse_from_str(value.trim(), "%Y-%m-%d").map_err(|_| ValidationError::invalid("ExpiryDate", value))?;
+        let parsed = chrono::NaiveDate::parse_from_str(value.trim(), "%Y-%m-%d")
+            .map_err(|_| ValidationError::invalid("ExpiryDate", value))?;
         Self::new(parsed)
     }
 }

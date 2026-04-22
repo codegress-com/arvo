@@ -5,8 +5,6 @@ use rust_decimal::Decimal;
 /// Input type for [`PositiveDecimal`].
 pub type PositiveDecimalInput = Decimal;
 
-/// Output type for [`PositiveDecimal`].
-
 /// A strictly positive decimal number (`Decimal > 0`).
 ///
 /// Zero and negative values are rejected on construction.
@@ -72,7 +70,10 @@ impl TryFrom<&str> for PositiveDecimal {
     type Error = ValidationError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let parsed = value.trim().parse::<Decimal>().map_err(|_| ValidationError::invalid("PositiveDecimal", value))?;
+        let parsed = value
+            .trim()
+            .parse::<Decimal>()
+            .map_err(|_| ValidationError::invalid("PositiveDecimal", value))?;
         Self::new(parsed)
     }
 }

@@ -6,8 +6,6 @@ use base64::engine::general_purpose::STANDARD;
 /// Input type for [`Base64String`].
 pub type Base64StringInput = String;
 
-/// Output type for [`Base64String`].
-
 /// A validated standard Base64-encoded string.
 ///
 /// Accepts the standard alphabet (`A–Z`, `a–z`, `0–9`, `+`, `/`) with `=`

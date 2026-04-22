@@ -1,7 +1,7 @@
 use rust_decimal::Decimal;
 
 use crate::errors::ValidationError;
-use crate::traits::{PrimitiveValue, ValueObject};
+use crate::traits::ValueObject;
 
 use super::currency_code::CurrencyCode;
 
@@ -15,8 +15,6 @@ pub struct ExchangeRateInput {
     /// Exchange rate — must be strictly positive.
     pub rate: Decimal,
 }
-
-/// Output type for [`ExchangeRate`] — canonical `"<FROM>/<TO> <rate>"` string.
 
 /// A validated currency exchange rate.
 ///

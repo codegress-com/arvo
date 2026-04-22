@@ -6,8 +6,6 @@ use crate::traits::{PrimitiveValue, ValueObject};
 /// Input type for [`CardExpiryDate`] — accepts `"MM/YY"` or `"MM/YYYY"`.
 pub type CardExpiryDateInput = String;
 
-/// Output type for [`CardExpiryDate`] — normalised `"MM/YY"` string.
-
 /// A validated credit/debit card expiry date.
 ///
 /// Accepts `"MM/YY"` or `"MM/YYYY"` format. The month must be 01–12 and the
