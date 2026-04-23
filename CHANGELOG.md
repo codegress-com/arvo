@@ -11,6 +11,27 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.0] — 2026-04-23
+
+### Breaking
+
+- `ValueObject` trait split into two traits: `ValueObject` (construction + destructuring) and `PrimitiveValue` (single-primitive accessor via `.value()`). Types backed by a primitive implement both; composite types implement only `ValueObject`.
+- Removed the `sql` feature and all SQLx integration. Database mapping is now the responsibility of the application layer (see the ORM guide in `docs/`).
+
+### Added
+
+- `PrimitiveValue` trait with a `.value() -> &Primitive` accessor for types whose canonical form is a single primitive.
+- `TryFrom<String>` and `TryFrom<&str>` implemented for all value objects — ergonomic construction without calling `::new()` explicitly.
+- Serde deserialization now runs the full validation pipeline; deserializing an invalid value returns an error instead of producing an invalid object.
+- Minimum `serde` version pinned to `1.0.116` (required for the `try_from` container attribute).
+
+### Fixed
+
+- Replaced `once_cell::sync::Lazy` with `std::sync::LazyLock` (stable since Rust 1.80); `once_cell` dependency removed.
+- Stale `test-sql` CI job removed; `once_cell` removed from the `contact` feature declaration.
+
+---
+
 ## [0.1.1] — 2026-04-17
 
 ### Added
@@ -39,5 +60,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `full` meta-feature
 - `prelude` module with convenience re-exports
 
-[Unreleased]: https://github.com/codegress-com/arvo/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/codegress-com/arvo/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/codegress-com/arvo/compare/v0.1.1...v1.0.0
+[0.1.1]: https://github.com/codegress-com/arvo/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/codegress-com/arvo/releases/tag/v0.1.0
