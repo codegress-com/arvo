@@ -72,7 +72,7 @@ Enable only the modules you need — unused features add zero dependencies.
 
 | Feature | What you get | Extra deps |
 |:---|:---|:---|
-| `contact` | `EmailAddress`, `CountryCode`, `PhoneNumber`, `PostalAddress`, `Website` | `once_cell`, `regex`, `url` |
+| `contact` | `EmailAddress`, `CountryCode`, `PhoneNumber`, `PostalAddress`, `Website` | `regex`, `url` |
 | `finance` | `Money`, `CurrencyCode`, `Iban`, `Bic`, `VatNumber`, `Percentage`, `ExchangeRate`, `CreditCardNumber`, `CardExpiryDate` | `rust_decimal`, `chrono` |
 | `geo` | `Latitude`, `Longitude`, `Coordinate`, `BoundingBox`, `TimeZone`, `CountryRegion` | — |
 | `measurement` | `Length`, `Weight`, `Temperature`, `Volume`, `Area`, `Speed`, `Pressure`, `Energy`, `Power`, `Frequency` | — |

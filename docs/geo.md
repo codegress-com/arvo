@@ -4,7 +4,7 @@ Feature flag: `geo`
 
 ```toml
 [dependencies]
-arvo = { version = "0.9", features = ["geo"] }
+arvo = { version = "1.0", features = ["geo"] }
 ```
 
 ---
@@ -17,7 +17,7 @@ A validated geographic latitude in decimal degrees.
 
 ```rust,ignore
 use arvo::geo::Latitude;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let lat = Latitude::new(48.8588)?;
 assert_eq!(*lat.value(), 48.8588);
@@ -50,7 +50,7 @@ A validated geographic longitude in decimal degrees.
 
 ```rust,ignore
 use arvo::geo::Longitude;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let lng = Longitude::new(14.4208)?;
 assert_eq!(*lng.value(), 14.4208);
@@ -82,7 +82,7 @@ A geographic coordinate (latitude + longitude pair).
 
 ```rust,ignore
 use arvo::geo::{Coordinate, CoordinateInput, Latitude, Longitude};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let coord = Coordinate::new(CoordinateInput {
     lat: Latitude::new(48.858844)?,
@@ -122,7 +122,7 @@ A geographic bounding box defined by a south-west and a north-east [`Coordinate`
 
 ```rust,ignore
 use arvo::geo::{BoundingBox, BoundingBoxInput, Coordinate, CoordinateInput, Latitude, Longitude};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let sw = Coordinate::new(CoordinateInput {
     lat: Latitude::new(48.0)?,
@@ -173,7 +173,7 @@ A validated IANA timezone name.
 
 ```rust,ignore
 use arvo::geo::TimeZone;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let tz = TimeZone::new("Europe/Prague".into())?;
 assert_eq!(tz.value(), "Europe/Prague");
@@ -210,7 +210,7 @@ A validated ISO 3166-2 subdivision code.
 
 ```rust,ignore
 use arvo::geo::CountryRegion;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let region = CountryRegion::new("cz-pr".into())?;
 assert_eq!(region.value(), "CZ-PR");
