@@ -1,12 +1,9 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 use url::Url;
 
 /// Input type for [`Website`] — a raw string before validation.
 pub type WebsiteInput = String;
-
-/// Output type for [`Website`] — a normalised URL string.
-pub type WebsiteOutput = String;
 
 /// A validated website URL.
 ///
@@ -28,12 +25,11 @@ pub type WebsiteOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Website(String);
 
 impl ValueObject for Website {
     type Input = WebsiteInput;
-    type Output = WebsiteOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -58,12 +54,14 @@ impl ValueObject for Website {
         Ok(Self(parsed.to_string()))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Website {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -85,6 +83,19 @@ impl Website {
 }
 
 /// Allows ergonomic construction from a string literal: `"https://example.com".try_into()`
+impl TryFrom<String> for Website {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Website> for String {
+    fn from(v: Website) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Website {
     type Error = ValidationError;
 
@@ -172,5 +183,21 @@ mod tests {
     fn try_from_str() {
         let w: Website = "https://example.com".try_into().unwrap();
         assert!(w.is_https());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Website::try_from("https://example.com").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Website = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Website, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

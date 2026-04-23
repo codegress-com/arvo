@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`HexColor`].
 pub type HexColorInput = String;
-
-/// Output type for [`HexColor`] — always a 7-character `#RRGGBB` string.
-pub type HexColorOutput = String;
 
 /// A CSS hex color in canonical `#RRGGBB` form, normalised to uppercase.
 ///
@@ -27,12 +24,11 @@ pub type HexColorOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct HexColor(String);
 
 impl ValueObject for HexColor {
     type Input = HexColorInput;
-    type Output = HexColorOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -66,12 +62,14 @@ impl ValueObject for HexColor {
         Ok(Self(expanded))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for HexColor {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -94,8 +92,26 @@ impl HexColor {
     pub fn b(&self) -> u8 {
         Self::channel(&self.0, 5)
     }
+
+    /// Returns the RGB channels as a tuple `(r, g, b)`.
+    pub fn to_rgb(&self) -> (u8, u8, u8) {
+        (self.r(), self.g(), self.b())
+    }
 }
 
+impl TryFrom<String> for HexColor {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<HexColor> for String {
+    fn from(v: HexColor) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for HexColor {
     type Error = ValidationError;
 
@@ -170,5 +186,21 @@ mod tests {
     fn try_from_str() {
         let c: HexColor = "#ABC".try_into().unwrap();
         assert_eq!(c.value(), "#AABBCC");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = HexColor::try_from("#ff0000").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: HexColor = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<HexColor, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

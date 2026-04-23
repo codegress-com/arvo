@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`CreditCardNumber`].
 pub type CreditCardNumberInput = String;
-
-/// Output type for [`CreditCardNumber`] — digits only, no separators.
-pub type CreditCardNumberOutput = String;
 
 /// A validated credit card number using the Luhn algorithm.
 ///
@@ -29,12 +26,11 @@ pub type CreditCardNumberOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct CreditCardNumber(String);
 
 impl ValueObject for CreditCardNumber {
     type Input = CreditCardNumberInput;
-    type Output = CreditCardNumberOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -56,12 +52,14 @@ impl ValueObject for CreditCardNumber {
         Ok(Self(digits))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for CreditCardNumber {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -116,6 +114,27 @@ fn luhn_valid(digits: &str) -> bool {
         })
         .sum();
     sum % 10 == 0
+}
+
+impl TryFrom<String> for CreditCardNumber {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<CreditCardNumber> for String {
+    fn from(v: CreditCardNumber) -> String {
+        v.0
+    }
+}
+impl TryFrom<&str> for CreditCardNumber {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new(value.to_owned())
+    }
 }
 
 #[cfg(test)]

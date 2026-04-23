@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Isbn13`].
 pub type Isbn13Input = String;
-
-/// Output type for [`Isbn13`] — 13 bare digits.
-pub type Isbn13Output = String;
 
 /// A validated ISBN-13 number.
 ///
@@ -25,12 +22,11 @@ pub type Isbn13Output = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Isbn13(String);
 
 impl ValueObject for Isbn13 {
     type Input = Isbn13Input;
-    type Output = Isbn13Output;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -61,12 +57,14 @@ impl ValueObject for Isbn13 {
         Ok(Self(stripped))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Isbn13 {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -77,6 +75,19 @@ impl Isbn13 {
     }
 }
 
+impl TryFrom<String> for Isbn13 {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Isbn13> for String {
+    fn from(v: Isbn13) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Isbn13 {
     type Error = ValidationError;
 
@@ -138,5 +149,21 @@ mod tests {
     fn try_from_str() {
         let i: Isbn13 = "9780306406157".try_into().unwrap();
         assert_eq!(i.value(), "9780306406157");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Isbn13::try_from("9780306406157").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Isbn13 = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Isbn13, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

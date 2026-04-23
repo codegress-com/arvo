@@ -154,6 +154,7 @@ pub struct BoundingBoxInput {
 | `value()` | `&str` | `"SW: 48.0, 14.0 / NE: 51.0, 18.0"` |
 | `sw()` | `&Coordinate` | south-west corner |
 | `ne()` | `&Coordinate` | north-east corner |
+| `contains(&Coordinate)` | `bool` | inclusive on all four edges |
 | `into_inner()` | `BoundingBoxInput` | original input |
 
 ### Errors

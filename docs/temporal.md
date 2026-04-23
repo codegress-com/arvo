@@ -31,6 +31,7 @@ assert!(UnixTimestamp::new(-1).is_err());
 | Method | Returns | Example |
 |---|---|---|
 | `value()` | `&i64` | `1700000000` |
+| `as_datetime()` | `DateTime<Utc>` | converts to a chrono UTC datetime |
 | `into_inner()` | `i64` | `1700000000` |
 
 ---
@@ -58,6 +59,7 @@ assert!(dob.age_years() > 0);
 |---|---|---|
 | `value()` | `&NaiveDate` | `1990-06-15` |
 | `age_years()` | `u32` | `35` |
+| `is_minor()` | `bool` | `true` if age < 18 |
 | `into_inner()` | `NaiveDate` | — |
 
 ### Errors
@@ -129,6 +131,8 @@ assert_eq!(range.duration().num_hours(), 2);
 | `start()` | `&DateTime<Utc>` | — |
 | `end()` | `&DateTime<Utc>` | — |
 | `duration()` | `Duration` | `2h` |
+| `contains(&DateTime<Utc>)` | `bool` | `[start, end)` — inclusive start, exclusive end |
+| `overlaps(&TimeRange)` | `bool` | `true` if the two ranges share any instant |
 | `into_inner()` | `TimeRangeInput` | — |
 
 ### Errors
@@ -170,6 +174,7 @@ assert_eq!(hours.duration().num_hours(), 8);
 | `open()` | `&NaiveTime` | `09:00` |
 | `close()` | `&NaiveTime` | `17:00` |
 | `duration()` | `Duration` | `8h` |
+| `is_open_at(NaiveTime)` | `bool` | `[open, close)` — open inclusive, close exclusive |
 | `into_inner()` | `BusinessHoursInput` | — |
 
 ### Errors

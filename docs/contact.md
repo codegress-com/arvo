@@ -131,6 +131,9 @@ pub struct PhoneNumberInput {
 | `number: "123"` | `ValidationError::InvalidFormat` (too short, min 4 digits) |
 | `number: "123456789012345"` | `ValidationError::InvalidFormat` (too long, max 14 digits) |
 
+> **Serde:** serialises as a JSON object `{ "country_code": "CZ", "number": "123456789" }` (the input struct).  
+> **TryFrom\<&str\>:** not implemented — the E.164 canonical string cannot be unambiguously decoded back to structured `PhoneNumberInput`.
+
 ---
 
 ## Website
@@ -227,3 +230,6 @@ pub struct PostalAddressInput {
 | `street` | `""` or whitespace | `ValidationError::Empty` |
 | `city` | `""` or whitespace | `ValidationError::Empty` |
 | `zip` | `""` or whitespace | `ValidationError::Empty` |
+
+> **Serde:** serialises as a JSON object matching `PostalAddressInput` (the input struct).  
+> **TryFrom\<&str\>:** not implemented — the formatted multi-line string cannot be unambiguously decoded back to structured fields.

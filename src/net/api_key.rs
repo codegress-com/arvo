@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`ApiKey`].
 pub type ApiKeyInput = String;
-
-/// Output type for [`ApiKey`].
-pub type ApiKeyOutput = String;
 
 /// A validated API key — non-empty, trimmed.
 ///
@@ -25,12 +22,11 @@ pub type ApiKeyOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct ApiKey(String);
 
 impl ValueObject for ApiKey {
     type Input = ApiKeyInput;
-    type Output = ApiKeyOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -43,12 +39,14 @@ impl ValueObject for ApiKey {
         Ok(Self(trimmed))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for ApiKey {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -74,6 +72,27 @@ impl ApiKey {
 impl std::fmt::Display for ApiKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.masked())
+    }
+}
+
+impl TryFrom<String> for ApiKey {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<ApiKey> for String {
+    fn from(v: ApiKey) -> String {
+        v.0
+    }
+}
+impl TryFrom<&str> for ApiKey {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new(value.to_owned())
     }
 }
 
@@ -128,5 +147,21 @@ mod tests {
         let displayed = key.to_string();
         assert!(displayed.ends_with("cret"));
         assert!(displayed.starts_with("**"));
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = ApiKey::try_from("sk-test-1234567890abcdef").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: ApiKey = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<ApiKey, _> = serde_json::from_str("\"\"");
+        assert!(result.is_err());
     }
 }

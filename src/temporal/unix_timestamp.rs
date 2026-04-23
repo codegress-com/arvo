@@ -1,11 +1,10 @@
+use chrono::{DateTime, TimeZone, Utc};
+
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`UnixTimestamp`].
 pub type UnixTimestampInput = i64;
-
-/// Output type for [`UnixTimestamp`].
-pub type UnixTimestampOutput = i64;
 
 /// A validated Unix timestamp — non-negative seconds since the Unix epoch.
 ///
@@ -24,12 +23,11 @@ pub type UnixTimestampOutput = i64;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "i64", into = "i64"))]
 pub struct UnixTimestamp(i64);
 
 impl ValueObject for UnixTimestamp {
     type Input = UnixTimestampInput;
-    type Output = UnixTimestampOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -42,12 +40,48 @@ impl ValueObject for UnixTimestamp {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for UnixTimestamp {
+    type Primitive = i64;
+    fn value(&self) -> &i64 {
+        &self.0
+    }
+}
+
+impl UnixTimestamp {
+    /// Converts to a `DateTime<Utc>`.
+    pub fn as_datetime(&self) -> DateTime<Utc> {
+        Utc.timestamp_opt(self.0, 0)
+            .single()
+            .expect("valid timestamp")
+    }
+}
+
+impl TryFrom<i64> for UnixTimestamp {
+    type Error = ValidationError;
+    fn try_from(v: i64) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<UnixTimestamp> for i64 {
+    fn from(v: UnixTimestamp) -> i64 {
+        v.0
+    }
+}
+impl TryFrom<&str> for UnixTimestamp {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value
+            .trim()
+            .parse::<i64>()
+            .map_err(|_| ValidationError::invalid("UnixTimestamp", value))?;
+        Self::new(parsed)
     }
 }
 
@@ -85,8 +119,53 @@ mod tests {
     }
 
     #[test]
+    fn as_datetime_epoch() {
+        let ts = UnixTimestamp::new(0).unwrap();
+        assert_eq!(ts.as_datetime().timestamp(), 0);
+    }
+
+    #[test]
+    fn as_datetime_nonzero() {
+        let ts = UnixTimestamp::new(1_700_000_000).unwrap();
+        assert_eq!(ts.as_datetime().timestamp(), 1_700_000_000);
+    }
+
+    #[test]
     fn display() {
         let ts = UnixTimestamp::new(1_000).unwrap();
         assert_eq!(ts.to_string(), "1000");
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let ts = UnixTimestamp::try_from("1700000000").unwrap();
+        assert_eq!(*ts.value(), 1_700_000_000);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(UnixTimestamp::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_negative() {
+        assert!(UnixTimestamp::try_from("-1").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = UnixTimestamp::new(1_700_000_000).unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "1700000000");
+        let back: UnixTimestamp = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<UnixTimestamp, _> = serde_json::from_str("-1");
+        assert!(result.is_err());
     }
 }

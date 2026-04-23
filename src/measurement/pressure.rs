@@ -13,6 +13,20 @@ pub enum PressureUnit {
     Atm,
 }
 
+#[cfg(feature = "serde")]
+impl From<Pressure> for String {
+    fn from(v: Pressure) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for Pressure {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for PressureUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -48,16 +62,15 @@ pub struct PressureInput {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Pressure {
     value: f64,
     unit: PressureUnit,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for Pressure {
     type Input = PressureInput;
-    type Output = str;
     type Error = ValidationError;
 
     fn new(input: Self::Input) -> Result<Self, Self::Error> {
@@ -75,9 +88,6 @@ impl ValueObject for Pressure {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
     fn into_inner(self) -> Self::Input {
         PressureInput {
             value: self.value,
@@ -87,11 +97,35 @@ impl ValueObject for Pressure {
 }
 
 impl Pressure {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     pub fn amount(&self) -> f64 {
         self.value
     }
     pub fn unit(&self) -> &PressureUnit {
         &self.unit
+    }
+}
+
+impl TryFrom<&str> for Pressure {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Pressure", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "Pa" => PressureUnit::Pa,
+            "kPa" => PressureUnit::KPa,
+            "MPa" => PressureUnit::MPa,
+            "bar" => PressureUnit::Bar,
+            "psi" => PressureUnit::Psi,
+            "atm" => PressureUnit::Atm,
+            _ => return Err(err()),
+        };
+        Self::new(PressureInput { value: val, unit })
     }
 }
 
@@ -146,5 +180,38 @@ mod tests {
             })
             .is_err()
         );
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let p = Pressure::try_from("101.325 kPa").unwrap();
+        assert_eq!(p.value(), "101.325 kPa");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Pressure::try_from("101").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Pressure::try_from("1.0 hg").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Pressure::try_from("101.325 kPa").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Pressure = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = Pressure::try_from("101.325 kPa").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("101.325 kPa"));
     }
 }

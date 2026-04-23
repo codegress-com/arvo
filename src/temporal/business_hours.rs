@@ -14,9 +14,6 @@ pub struct BusinessHoursInput {
     pub close: NaiveTime,
 }
 
-/// Output type for [`BusinessHours`] — canonical `"<Day> HH:MM–HH:MM"` string.
-pub type BusinessHoursOutput = String;
-
 /// Validated business hours for a single weekday.
 ///
 /// `open` must be strictly before `close`. The canonical output is formatted
@@ -40,17 +37,16 @@ pub type BusinessHoursOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct BusinessHours {
     weekday: Weekday,
     open: NaiveTime,
     close: NaiveTime,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for BusinessHours {
     type Input = BusinessHoursInput;
-    type Output = BusinessHoursOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -83,10 +79,6 @@ impl ValueObject for BusinessHours {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         BusinessHoursInput {
             weekday: self.weekday,
@@ -97,6 +89,10 @@ impl ValueObject for BusinessHours {
 }
 
 impl BusinessHours {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     /// Returns the weekday.
     pub fn weekday(&self) -> Weekday {
         self.weekday
@@ -115,6 +111,54 @@ impl BusinessHours {
     /// Returns the duration of the business day (`close - open`).
     pub fn duration(&self) -> Duration {
         self.close - self.open
+    }
+
+    /// Returns `true` if `time` falls within `[open, close)`.
+    pub fn is_open_at(&self, time: NaiveTime) -> bool {
+        time >= self.open && time < self.close
+    }
+}
+
+impl TryFrom<&str> for BusinessHours {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("BusinessHours", value);
+        let (day_str, times_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let weekday = match day_str {
+            "Mon" => chrono::Weekday::Mon,
+            "Tue" => chrono::Weekday::Tue,
+            "Wed" => chrono::Weekday::Wed,
+            "Thu" => chrono::Weekday::Thu,
+            "Fri" => chrono::Weekday::Fri,
+            "Sat" => chrono::Weekday::Sat,
+            "Sun" => chrono::Weekday::Sun,
+            _ => return Err(err()),
+        };
+        let (open_str, close_str) = times_str.split_once('\u{2013}').ok_or_else(err)?;
+        let open =
+            chrono::NaiveTime::parse_from_str(open_str.trim(), "%H:%M").map_err(|_| err())?;
+        let close =
+            chrono::NaiveTime::parse_from_str(close_str.trim(), "%H:%M").map_err(|_| err())?;
+        Self::new(BusinessHoursInput {
+            weekday,
+            open,
+            close,
+        })
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<BusinessHours> for String {
+    fn from(v: BusinessHours) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for BusinessHours {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
     }
 }
 
@@ -232,6 +276,32 @@ mod tests {
     }
 
     #[test]
+    fn is_open_at_during_hours() {
+        let h = BusinessHours::new(valid_input()).unwrap();
+        let noon = NaiveTime::from_hms_opt(12, 0, 0).unwrap();
+        assert!(h.is_open_at(noon));
+    }
+
+    #[test]
+    fn is_open_at_open_time_inclusive() {
+        let h = BusinessHours::new(valid_input()).unwrap();
+        assert!(h.is_open_at(open()));
+    }
+
+    #[test]
+    fn is_open_at_close_time_exclusive() {
+        let h = BusinessHours::new(valid_input()).unwrap();
+        assert!(!h.is_open_at(close()));
+    }
+
+    #[test]
+    fn is_open_at_before_open() {
+        let h = BusinessHours::new(valid_input()).unwrap();
+        let early = NaiveTime::from_hms_opt(8, 0, 0).unwrap();
+        assert!(!h.is_open_at(early));
+    }
+
+    #[test]
     fn display_matches_value() {
         let h = BusinessHours::new(valid_input()).unwrap();
         assert_eq!(h.to_string(), h.value().to_owned());
@@ -242,5 +312,38 @@ mod tests {
         let input = valid_input();
         let h = BusinessHours::new(input.clone()).unwrap();
         assert_eq!(h.into_inner(), input);
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let h = BusinessHours::try_from("Mon 09:00–17:00").unwrap();
+        assert_eq!(h.value(), "Mon 09:00–17:00");
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_day() {
+        assert!(BusinessHours::try_from("Xyz 09:00–17:00").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_close_before_open() {
+        assert!(BusinessHours::try_from("Mon 17:00–09:00").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = BusinessHours::try_from("Mon 09:00–17:00").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: BusinessHours = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = BusinessHours::try_from("Mon 09:00–17:00").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("Mon"));
     }
 }

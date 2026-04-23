@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`PositiveInt`].
 pub type PositiveIntInput = i64;
-
-/// Output type for [`PositiveInt`].
-pub type PositiveIntOutput = i64;
 
 /// A strictly positive integer (`i64 > 0`).
 ///
@@ -25,12 +22,11 @@ pub type PositiveIntOutput = i64;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "i64", into = "i64"))]
 pub struct PositiveInt(i64);
 
 impl ValueObject for PositiveInt {
     type Input = PositiveIntInput;
-    type Output = PositiveIntOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -45,12 +41,39 @@ impl ValueObject for PositiveInt {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for PositiveInt {
+    type Primitive = i64;
+    fn value(&self) -> &i64 {
+        &self.0
+    }
+}
+
+impl TryFrom<i64> for PositiveInt {
+    type Error = ValidationError;
+    fn try_from(v: i64) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<PositiveInt> for i64 {
+    fn from(v: PositiveInt) -> i64 {
+        v.0
+    }
+}
+impl TryFrom<&str> for PositiveInt {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value
+            .trim()
+            .parse::<i64>()
+            .map_err(|_| ValidationError::invalid("PositiveInt", value))?;
+        Self::new(parsed)
     }
 }
 
@@ -84,5 +107,38 @@ mod tests {
     #[test]
     fn rejects_negative() {
         assert!(PositiveInt::new(-1).is_err());
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let v = PositiveInt::try_from("42").unwrap();
+        assert_eq!(*v.value(), 42);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(PositiveInt::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_zero() {
+        assert!(PositiveInt::try_from("0").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = PositiveInt::new(42).unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "42");
+        let back: PositiveInt = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<PositiveInt, _> = serde_json::from_str("0");
+        assert!(result.is_err());
     }
 }

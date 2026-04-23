@@ -10,6 +10,20 @@ pub enum TemperatureUnit {
     Kelvin,
 }
 
+#[cfg(feature = "serde")]
+impl From<Temperature> for String {
+    fn from(v: Temperature) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for Temperature {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for TemperatureUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -45,16 +59,15 @@ pub struct TemperatureInput {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Temperature {
     value: f64,
     unit: TemperatureUnit,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for Temperature {
     type Input = TemperatureInput;
-    type Output = str;
     type Error = ValidationError;
 
     fn new(input: Self::Input) -> Result<Self, Self::Error> {
@@ -86,10 +99,6 @@ impl ValueObject for Temperature {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         TemperatureInput {
             value: self.value,
@@ -99,11 +108,32 @@ impl ValueObject for Temperature {
 }
 
 impl Temperature {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     pub fn amount(&self) -> f64 {
         self.value
     }
     pub fn unit(&self) -> &TemperatureUnit {
         &self.unit
+    }
+}
+
+impl TryFrom<&str> for Temperature {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Temperature", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "°C" => TemperatureUnit::Celsius,
+            "°F" => TemperatureUnit::Fahrenheit,
+            "K" => TemperatureUnit::Kelvin,
+            _ => return Err(err()),
+        };
+        Self::new(TemperatureInput { value: val, unit })
     }
 }
 
@@ -191,5 +221,38 @@ mod tests {
             })
             .is_err()
         );
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let t = Temperature::try_from("100 °C").unwrap();
+        assert_eq!(t.value(), "100 °C");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Temperature::try_from("100").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_below_absolute_zero() {
+        assert!(Temperature::try_from("-500 K").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Temperature::try_from("100 °C").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Temperature = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = Temperature::try_from("100 °C").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("100"));
     }
 }

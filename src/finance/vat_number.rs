@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`VatNumber`].
 pub type VatNumberInput = String;
-
-/// Output type for [`VatNumber`] — canonical uppercase string without spaces.
-pub type VatNumberOutput = String;
 
 /// EU VAT country prefixes (sorted for binary search).
 static EU_PREFIXES: &[&str] = &[
@@ -31,12 +28,11 @@ static EU_PREFIXES: &[&str] = &[
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct VatNumber(String);
 
 impl ValueObject for VatNumber {
     type Input = VatNumberInput;
-    type Output = VatNumberOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -76,12 +72,14 @@ impl ValueObject for VatNumber {
         Ok(Self(normalised))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for VatNumber {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -92,6 +90,19 @@ impl VatNumber {
     }
 }
 
+impl TryFrom<String> for VatNumber {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<VatNumber> for String {
+    fn from(v: VatNumber) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for VatNumber {
     type Error = ValidationError;
 

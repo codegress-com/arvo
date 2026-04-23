@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Iban`].
 pub type IbanInput = String;
-
-/// Output type for [`Iban`] — canonical uppercase string without spaces.
-pub type IbanOutput = String;
 
 /// A validated IBAN (International Bank Account Number).
 ///
@@ -27,12 +24,11 @@ pub type IbanOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Iban(String);
 
 impl ValueObject for Iban {
     type Input = IbanInput;
-    type Output = IbanOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -69,12 +65,14 @@ impl ValueObject for Iban {
         Ok(Self(stripped))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Iban {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -95,6 +93,19 @@ impl Iban {
     }
 }
 
+impl TryFrom<String> for Iban {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Iban> for String {
+    fn from(v: Iban) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Iban {
     type Error = ValidationError;
 
@@ -195,5 +206,21 @@ mod tests {
     fn try_from_str() {
         let i: Iban = "GB82WEST12345698765432".try_into().unwrap();
         assert_eq!(i.value(), "GB82WEST12345698765432");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Iban::try_from("GB82WEST12345698765432").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Iban = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Iban, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

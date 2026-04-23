@@ -12,6 +12,20 @@ pub enum VolumeUnit {
     Gal,
 }
 
+#[cfg(feature = "serde")]
+impl From<Volume> for String {
+    fn from(v: Volume) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for Volume {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for VolumeUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -46,16 +60,15 @@ pub struct VolumeInput {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Volume {
     value: f64,
     unit: VolumeUnit,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for Volume {
     type Input = VolumeInput;
-    type Output = str;
     type Error = ValidationError;
 
     fn new(input: Self::Input) -> Result<Self, Self::Error> {
@@ -70,9 +83,6 @@ impl ValueObject for Volume {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
     fn into_inner(self) -> Self::Input {
         VolumeInput {
             value: self.value,
@@ -82,11 +92,34 @@ impl ValueObject for Volume {
 }
 
 impl Volume {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     pub fn amount(&self) -> f64 {
         self.value
     }
     pub fn unit(&self) -> &VolumeUnit {
         &self.unit
+    }
+}
+
+impl TryFrom<&str> for Volume {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Volume", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "ml" => VolumeUnit::Ml,
+            "l" => VolumeUnit::L,
+            "m³" => VolumeUnit::M3,
+            "fl oz" => VolumeUnit::FlOz,
+            "gal" => VolumeUnit::Gal,
+            _ => return Err(err()),
+        };
+        Self::new(VolumeInput { value: val, unit })
     }
 }
 
@@ -141,5 +174,38 @@ mod tests {
             })
             .is_err()
         );
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let v = Volume::try_from("1.5 l").unwrap();
+        assert_eq!(v.value(), "1.5 l");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Volume::try_from("1.5").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Volume::try_from("1.5 cups").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Volume::try_from("1.5 l").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Volume = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = Volume::try_from("1.5 l").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("1.5 l"));
     }
 }

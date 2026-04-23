@@ -1,13 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 
 /// Input type for [`Base64String`].
 pub type Base64StringInput = String;
-
-/// Output type for [`Base64String`].
-pub type Base64StringOutput = String;
 
 /// A validated standard Base64-encoded string.
 ///
@@ -28,12 +25,11 @@ pub type Base64StringOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Base64String(String);
 
 impl ValueObject for Base64String {
     type Input = Base64StringInput;
-    type Output = Base64StringOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -47,12 +43,14 @@ impl ValueObject for Base64String {
         Ok(Self(trimmed))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Base64String {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -63,6 +61,19 @@ impl Base64String {
     }
 }
 
+impl TryFrom<String> for Base64String {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Base64String> for String {
+    fn from(v: Base64String) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Base64String {
     type Error = ValidationError;
 
@@ -118,5 +129,21 @@ mod tests {
     fn try_from_str() {
         let b: Base64String = "aGVsbG8=".try_into().unwrap();
         assert_eq!(b.decode(), b"hello");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Base64String::try_from("aGVsbG8=").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Base64String = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Base64String, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

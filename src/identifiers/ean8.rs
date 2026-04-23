@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Ean8`].
 pub type Ean8Input = String;
-
-/// Output type for [`Ean8`] — 8 bare digits.
-pub type Ean8Output = String;
 
 /// A validated EAN-8 barcode number.
 ///
@@ -25,7 +22,7 @@ pub type Ean8Output = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Ean8(String);
 
 fn ean_checksum_valid(digits: &[u8], expected_len: usize) -> bool {
@@ -47,7 +44,6 @@ fn ean_checksum_valid(digits: &[u8], expected_len: usize) -> bool {
 
 impl ValueObject for Ean8 {
     type Input = Ean8Input;
-    type Output = Ean8Output;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -66,12 +62,14 @@ impl ValueObject for Ean8 {
         Ok(Self(stripped))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Ean8 {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -82,6 +80,19 @@ impl Ean8 {
     }
 }
 
+impl TryFrom<String> for Ean8 {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Ean8> for String {
+    fn from(v: Ean8) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Ean8 {
     type Error = ValidationError;
 
@@ -132,5 +143,21 @@ mod tests {
     fn try_from_str() {
         let e: Ean8 = "73513537".try_into().unwrap();
         assert_eq!(e.value(), "73513537");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Ean8::try_from("96385074").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Ean8 = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Ean8, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

@@ -1,13 +1,10 @@
 use chrono::{Datelike, Local};
 
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`CardExpiryDate`] — accepts `"MM/YY"` or `"MM/YYYY"`.
 pub type CardExpiryDateInput = String;
-
-/// Output type for [`CardExpiryDate`] — normalised `"MM/YY"` string.
-pub type CardExpiryDateOutput = String;
 
 /// A validated credit/debit card expiry date.
 ///
@@ -31,12 +28,11 @@ pub type CardExpiryDateOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct CardExpiryDate(String);
 
 impl ValueObject for CardExpiryDate {
     type Input = CardExpiryDateInput;
-    type Output = CardExpiryDateOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -85,12 +81,14 @@ impl ValueObject for CardExpiryDate {
         Ok(Self(canonical))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for CardExpiryDate {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -105,8 +103,31 @@ impl CardExpiryDate {
         let yy: u16 = self.0[3..].parse().unwrap();
         2000 + yy
     }
+
+    /// Returns the number of full months from the current month until expiry.
+    pub fn months_until(&self) -> u32 {
+        let now = Local::now();
+        let current_year = now.year() as u16;
+        let current_month = now.month() as u8;
+        let expiry_months = self.year() * 12 + self.month() as u16;
+        let current_months = current_year * 12 + current_month as u16;
+        expiry_months.saturating_sub(current_months) as u32
+    }
 }
 
+impl TryFrom<String> for CardExpiryDate {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<CardExpiryDate> for String {
+    fn from(v: CardExpiryDate) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for CardExpiryDate {
     type Error = ValidationError;
 

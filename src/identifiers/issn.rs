@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Issn`].
 pub type IssnInput = String;
-
-/// Output type for [`Issn`] — canonical `XXXX-XXXX` form.
-pub type IssnOutput = String;
 
 /// A validated ISSN (International Standard Serial Number).
 ///
@@ -27,12 +24,11 @@ pub type IssnOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Issn(String);
 
 impl ValueObject for Issn {
     type Input = IssnInput;
-    type Output = IssnOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -77,15 +73,30 @@ impl ValueObject for Issn {
         Ok(Self(canonical))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
+impl PrimitiveValue for Issn {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
 
+impl TryFrom<String> for Issn {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Issn> for String {
+    fn from(v: Issn) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Issn {
     type Error = ValidationError;
 
@@ -148,5 +159,21 @@ mod tests {
     fn try_from_str() {
         let i: Issn = "0317-8471".try_into().unwrap();
         assert_eq!(i.value(), "0317-8471");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Issn::try_from("0317-8471").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Issn = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Issn, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

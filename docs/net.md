@@ -99,6 +99,8 @@ let ip: IpV4Address = "10.0.0.1".try_into()?;
 | Method | Returns | Example |
 |---|---|---|
 | `value()` | `&String` | `"192.168.1.1"` |
+| `is_loopback()` | `bool` | `true` for `127.0.0.0/8` |
+| `is_private()` | `bool` | `true` for `10/8`, `172.16/12`, `192.168/16` |
 | `into_inner()` | `String` | `"192.168.1.1"` |
 
 ### Errors
@@ -186,6 +188,9 @@ assert!(Port::new(0).is_err());
 | Method | Returns | Example |
 |---|---|---|
 | `value()` | `&u16` | `8080` |
+| `is_well_known()` | `bool` | `true` for ports 1–1023 |
+| `is_registered()` | `bool` | `true` for ports 1024–49151 |
+| `is_ephemeral()` | `bool` | `true` for ports 49152–65535 |
 | `into_inner()` | `u16` | `8080` |
 
 ### Errors

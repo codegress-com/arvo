@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Vin`].
 pub type VinInput = String;
-
-/// Output type for [`Vin`] — 17 uppercase characters.
-pub type VinOutput = String;
 
 /// A validated Vehicle Identification Number (VIN) per ISO 3779.
 ///
@@ -27,7 +24,7 @@ pub type VinOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Vin(String);
 
 fn transliterate(c: char) -> Option<u32> {
@@ -73,7 +70,6 @@ const WEIGHTS: [u32; 17] = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
 
 impl ValueObject for Vin {
     type Input = VinInput;
-    type Output = VinOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -115,12 +111,14 @@ impl ValueObject for Vin {
         Ok(Self(normalised))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Vin {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -146,6 +144,19 @@ impl Vin {
     }
 }
 
+impl TryFrom<String> for Vin {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Vin> for String {
+    fn from(v: Vin) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Vin {
     type Error = ValidationError;
 
@@ -231,5 +242,21 @@ mod tests {
     fn try_from_str() {
         let v: Vin = VALID_VIN.try_into().unwrap();
         assert_eq!(v.value(), VALID_VIN);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Vin::try_from("1HGBH41JXMN109186").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Vin = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Vin, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

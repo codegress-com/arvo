@@ -11,6 +11,20 @@ pub enum FrequencyUnit {
     GHz,
 }
 
+#[cfg(feature = "serde")]
+impl From<Frequency> for String {
+    fn from(v: Frequency) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for Frequency {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for FrequencyUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -44,16 +58,15 @@ pub struct FrequencyInput {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Frequency {
     value: f64,
     unit: FrequencyUnit,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for Frequency {
     type Input = FrequencyInput;
-    type Output = str;
     type Error = ValidationError;
 
     fn new(input: Self::Input) -> Result<Self, Self::Error> {
@@ -71,9 +84,6 @@ impl ValueObject for Frequency {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
     fn into_inner(self) -> Self::Input {
         FrequencyInput {
             value: self.value,
@@ -83,11 +93,33 @@ impl ValueObject for Frequency {
 }
 
 impl Frequency {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     pub fn amount(&self) -> f64 {
         self.value
     }
     pub fn unit(&self) -> &FrequencyUnit {
         &self.unit
+    }
+}
+
+impl TryFrom<&str> for Frequency {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Frequency", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "Hz" => FrequencyUnit::Hz,
+            "kHz" => FrequencyUnit::KHz,
+            "MHz" => FrequencyUnit::MHz,
+            "GHz" => FrequencyUnit::GHz,
+            _ => return Err(err()),
+        };
+        Self::new(FrequencyInput { value: val, unit })
     }
 }
 
@@ -142,5 +174,38 @@ mod tests {
             })
             .is_err()
         );
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let f = Frequency::try_from("2.4 GHz").unwrap();
+        assert_eq!(f.value(), "2.4 GHz");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Frequency::try_from("2.4").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Frequency::try_from("2.4 THz").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Frequency::try_from("2.4 GHz").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Frequency = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = Frequency::try_from("2.4 GHz").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("2.4 GHz"));
     }
 }

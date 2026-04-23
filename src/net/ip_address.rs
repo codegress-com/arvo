@@ -1,13 +1,10 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 use super::{IpV4Address, IpV6Address};
 
 /// Input for [`IpAddress`] — either a v4 or v6 address string.
 pub type IpAddressInput = String;
-
-/// Output type for [`IpAddress`].
-pub type IpAddressOutput = String;
 
 /// A validated IP address — either IPv4 or IPv6.
 ///
@@ -29,12 +26,11 @@ pub type IpAddressOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct IpAddress(String);
 
 impl ValueObject for IpAddress {
     type Input = IpAddressInput;
-    type Output = IpAddressOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -55,12 +51,14 @@ impl ValueObject for IpAddress {
         Err(ValidationError::invalid("IpAddress", trimmed))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for IpAddress {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -76,6 +74,19 @@ impl IpAddress {
     }
 }
 
+impl TryFrom<String> for IpAddress {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<IpAddress> for String {
+    fn from(v: IpAddress) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for IpAddress {
     type Error = ValidationError;
 

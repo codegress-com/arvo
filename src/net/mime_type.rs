@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`MimeType`].
 pub type MimeTypeInput = String;
-
-/// Output type for [`MimeType`].
-pub type MimeTypeOutput = String;
 
 /// A validated MIME type (e.g. `"image/png"`, `"application/json"`).
 ///
@@ -29,12 +26,11 @@ pub type MimeTypeOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct MimeType(String);
 
 impl ValueObject for MimeType {
     type Input = MimeTypeInput;
-    type Output = MimeTypeOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -51,12 +47,14 @@ impl ValueObject for MimeType {
         Ok(Self(normalised))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for MimeType {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -93,6 +91,19 @@ impl MimeType {
     }
 }
 
+impl TryFrom<String> for MimeType {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<MimeType> for String {
+    fn from(v: MimeType) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for MimeType {
     type Error = ValidationError;
 
@@ -165,5 +176,21 @@ mod tests {
     fn try_from_str() {
         let m: MimeType = "text/plain".try_into().unwrap();
         assert_eq!(m.value(), "text/plain");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = MimeType::try_from("image/png").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: MimeType = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<MimeType, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

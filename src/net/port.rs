@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Port`].
 pub type PortInput = u16;
-
-/// Output type for [`Port`].
-pub type PortOutput = u16;
 
 /// A validated network port number in the range `1..=65535`.
 ///
@@ -24,12 +21,11 @@ pub type PortOutput = u16;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "u16", into = "u16"))]
 pub struct Port(u16);
 
 impl ValueObject for Port {
     type Input = PortInput;
-    type Output = PortOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -39,12 +35,56 @@ impl ValueObject for Port {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Port {
+    type Primitive = u16;
+    fn value(&self) -> &u16 {
+        &self.0
+    }
+}
+
+impl Port {
+    /// Returns `true` for well-known ports (1–1023).
+    pub fn is_well_known(&self) -> bool {
+        self.0 <= 1023
+    }
+
+    /// Returns `true` for registered ports (1024–49151).
+    pub fn is_registered(&self) -> bool {
+        (1024..=49151).contains(&self.0)
+    }
+
+    /// Returns `true` for ephemeral / dynamic ports (49152–65535).
+    pub fn is_ephemeral(&self) -> bool {
+        self.0 >= 49152
+    }
+}
+
+impl TryFrom<u16> for Port {
+    type Error = ValidationError;
+    fn try_from(v: u16) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Port> for u16 {
+    fn from(v: Port) -> u16 {
+        v.0
+    }
+}
+impl TryFrom<&str> for Port {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value
+            .trim()
+            .parse::<u16>()
+            .map_err(|_| ValidationError::invalid("Port", value))?;
+        Self::new(parsed)
     }
 }
 
@@ -87,6 +127,15 @@ mod tests {
     }
 
     #[test]
+    fn port_categories() {
+        assert!(Port::new(80).unwrap().is_well_known());
+        assert!(Port::new(8080).unwrap().is_registered());
+        assert!(Port::new(60000).unwrap().is_ephemeral());
+        assert!(!Port::new(8080).unwrap().is_well_known());
+        assert!(!Port::new(80).unwrap().is_ephemeral());
+    }
+
+    #[test]
     fn display() {
         let port = Port::new(443).unwrap();
         assert_eq!(port.to_string(), "443");
@@ -96,5 +145,38 @@ mod tests {
     fn into_inner_roundtrip() {
         let port = Port::new(3000).unwrap();
         assert_eq!(port.into_inner(), 3000);
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let p = Port::try_from("8080").unwrap();
+        assert_eq!(*p.value(), 8080);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(Port::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_zero() {
+        assert!(Port::try_from("0").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Port::new(8080).unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "8080");
+        let back: Port = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Port, _> = serde_json::from_str("0");
+        assert!(result.is_err());
     }
 }

@@ -1,13 +1,10 @@
 use chrono::{Datelike, Local, NaiveDate};
 
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`BirthDate`].
 pub type BirthDateInput = NaiveDate;
-
-/// Output type for [`BirthDate`].
-pub type BirthDateOutput = NaiveDate;
 
 /// A validated date of birth.
 ///
@@ -27,12 +24,14 @@ pub type BirthDateOutput = NaiveDate;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(
+    feature = "serde",
+    serde(try_from = "chrono::NaiveDate", into = "chrono::NaiveDate")
+)]
 pub struct BirthDate(NaiveDate);
 
 impl ValueObject for BirthDate {
     type Input = BirthDateInput;
-    type Output = BirthDateOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -53,12 +52,14 @@ impl ValueObject for BirthDate {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for BirthDate {
+    type Primitive = chrono::NaiveDate;
+    fn value(&self) -> &chrono::NaiveDate {
+        &self.0
     }
 }
 
@@ -73,6 +74,34 @@ impl BirthDate {
         } else {
             (years - 1) as u32
         }
+    }
+
+    /// Returns `true` if the person is under 18 years old as of today.
+    pub fn is_minor(&self) -> bool {
+        self.age_years() < 18
+    }
+}
+
+impl TryFrom<chrono::NaiveDate> for BirthDate {
+    type Error = ValidationError;
+    fn try_from(v: chrono::NaiveDate) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<BirthDate> for chrono::NaiveDate {
+    fn from(v: BirthDate) -> chrono::NaiveDate {
+        v.0
+    }
+}
+impl TryFrom<&str> for BirthDate {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = chrono::NaiveDate::parse_from_str(value.trim(), "%Y-%m-%d")
+            .map_err(|_| ValidationError::invalid("BirthDate", value))?;
+        Self::new(parsed)
     }
 }
 
@@ -135,5 +164,38 @@ mod tests {
     fn into_inner_roundtrip() {
         let d = BirthDate::new(past_date()).unwrap();
         assert_eq!(d.into_inner(), past_date());
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let d = BirthDate::try_from("1990-06-15").unwrap();
+        assert_eq!(d.value().to_string(), "1990-06-15");
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(BirthDate::try_from("15-06-1990").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_future_date() {
+        assert!(BirthDate::try_from("2099-01-01").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = BirthDate::try_from("1990-06-15").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "\"1990-06-15\"");
+        let back: BirthDate = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<BirthDate, _> = serde_json::from_str("\"2099-01-01\"");
+        assert!(result.is_err());
     }
 }

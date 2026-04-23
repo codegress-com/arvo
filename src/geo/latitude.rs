@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Latitude`].
 pub type LatitudeInput = f64;
-
-/// Output type for [`Latitude`].
-pub type LatitudeOutput = f64;
 
 /// A validated geographic latitude in decimal degrees.
 ///
@@ -25,12 +22,11 @@ pub type LatitudeOutput = f64;
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "f64", into = "f64"))]
 pub struct Latitude(f64);
 
 impl ValueObject for Latitude {
     type Input = LatitudeInput;
-    type Output = LatitudeOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -43,12 +39,39 @@ impl ValueObject for Latitude {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Latitude {
+    type Primitive = f64;
+    fn value(&self) -> &f64 {
+        &self.0
+    }
+}
+
+impl TryFrom<f64> for Latitude {
+    type Error = ValidationError;
+    fn try_from(v: f64) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Latitude> for f64 {
+    fn from(v: Latitude) -> f64 {
+        v.0
+    }
+}
+impl TryFrom<&str> for Latitude {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value
+            .trim()
+            .parse::<f64>()
+            .map_err(|_| ValidationError::invalid("Latitude", value))?;
+        Self::new(parsed)
     }
 }
 
@@ -101,5 +124,38 @@ mod tests {
     fn into_inner_roundtrip() {
         let lat = Latitude::new(51.5074).unwrap();
         assert_eq!(lat.into_inner(), 51.5074);
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let lat = Latitude::try_from("48.8588").unwrap();
+        assert_eq!(*lat.value(), 48.8588);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(Latitude::try_from("not_a_number").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_out_of_range() {
+        assert!(Latitude::try_from("91.0").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Latitude::new(48.8588).unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "48.8588");
+        let back: Latitude = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Latitude, _> = serde_json::from_str("91.0");
+        assert!(result.is_err());
     }
 }

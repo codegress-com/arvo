@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`HttpStatusCode`].
 pub type HttpStatusCodeInput = u16;
-
-/// Output type for [`HttpStatusCode`].
-pub type HttpStatusCodeOutput = u16;
 
 /// A validated HTTP status code in the range `100..=599`.
 ///
@@ -23,12 +20,11 @@ pub type HttpStatusCodeOutput = u16;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "u16", into = "u16"))]
 pub struct HttpStatusCode(u16);
 
 impl ValueObject for HttpStatusCode {
     type Input = HttpStatusCodeInput;
-    type Output = HttpStatusCodeOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -41,12 +37,14 @@ impl ValueObject for HttpStatusCode {
         Ok(Self(value))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for HttpStatusCode {
+    type Primitive = u16;
+    fn value(&self) -> &u16 {
+        &self.0
     }
 }
 
@@ -74,6 +72,31 @@ impl HttpStatusCode {
     /// Returns `true` for 5xx server error codes.
     pub fn is_server_error(&self) -> bool {
         (500..=599).contains(&self.0)
+    }
+}
+
+impl TryFrom<u16> for HttpStatusCode {
+    type Error = ValidationError;
+    fn try_from(v: u16) -> Result<Self, Self::Error> {
+        Self::new(v)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<HttpStatusCode> for u16 {
+    fn from(v: HttpStatusCode) -> u16 {
+        v.0
+    }
+}
+impl TryFrom<&str> for HttpStatusCode {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parsed = value
+            .trim()
+            .parse::<u16>()
+            .map_err(|_| ValidationError::invalid("HttpStatusCode", value))?;
+        Self::new(parsed)
     }
 }
 
@@ -128,5 +151,38 @@ mod tests {
     fn into_inner_roundtrip() {
         let code = HttpStatusCode::new(201).unwrap();
         assert_eq!(code.into_inner(), 201);
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let c = HttpStatusCode::try_from("200").unwrap();
+        assert_eq!(*c.value(), 200);
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_format() {
+        assert!(HttpStatusCode::try_from("abc").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_out_of_range() {
+        assert!(HttpStatusCode::try_from("99").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = HttpStatusCode::new(200).unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "200");
+        let back: HttpStatusCode = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<HttpStatusCode, _> = serde_json::from_str("99");
+        assert!(result.is_err());
     }
 }

@@ -28,7 +28,7 @@ jobs:
   ci:
     name: CI
     if: ${{ always() }}
-    needs: [fmt, clippy, docs, msrv, test, test-sql]
+    needs: [fmt, clippy, docs, msrv, test]
     runs-on: ubuntu-latest
     steps:
       - name: Result
@@ -63,7 +63,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: clippy (no default features)
         run: cargo clippy --no-default-features -- -Dclippy::all
-      - name: clippy (all features except sql)
+      - name: clippy (full + serde)
         run: cargo clippy --features full,serde -- -Dclippy::all
       - name: clippy (all features)
         run: cargo clippy --all-features -- -Dclippy::all
@@ -128,38 +128,6 @@ jobs:
         run: cargo test --features full,serde
       - name: cargo test --doc
         run: cargo test --doc --features full,serde
-
-  # ── Tests (sql feature, requires Postgres) ────────────────────────────────
-  test-sql:
-    name: test-sql (ubuntu-latest / stable)
-    needs: [fmt, clippy]
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: arvo
-          POSTGRES_PASSWORD: arvo
-          POSTGRES_DB: arvo_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    env:
-      DATABASE_URL: postgres://arvo:arvo@localhost:5432/arvo_test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: sql
-      - name: cargo test (sql)
-        run: cargo test --features sql
-      - name: cargo test (all features)
-        run: cargo test --all-features
 
   # ── Minimal dependency versions ───────────────────────────────────────────
   minimal-versions:

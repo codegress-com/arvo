@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Bic`].
 pub type BicInput = String;
-
-/// Output type for [`Bic`] — canonical uppercase string.
-pub type BicOutput = String;
 
 /// A validated BIC (Bank Identifier Code), also known as SWIFT code.
 ///
@@ -33,12 +30,11 @@ pub type BicOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Bic(String);
 
 impl ValueObject for Bic {
     type Input = BicInput;
-    type Output = BicOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -72,12 +68,14 @@ impl ValueObject for Bic {
         Ok(Self(upper))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Bic {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -107,6 +105,19 @@ impl Bic {
     }
 }
 
+impl TryFrom<String> for Bic {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Bic> for String {
+    fn from(v: Bic) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Bic {
     type Error = ValidationError;
 
@@ -204,5 +215,21 @@ mod tests {
     fn try_from_str() {
         let b: Bic = "DEUTDEDB".try_into().unwrap();
         assert_eq!(b.value(), "DEUTDEDB");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Bic::try_from("DEUTDEDB").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Bic = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Bic, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Locale`].
 pub type LocaleInput = String;
-
-/// Output type for [`Locale`] — BCP 47 canonical form, e.g. `"en-US"`.
-pub type LocaleOutput = String;
 
 /// A BCP 47 language tag (e.g. `"en-US"`, `"cs-CZ"`, `"fr"`).
 ///
@@ -30,12 +27,11 @@ pub type LocaleOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Locale(String);
 
 impl ValueObject for Locale {
     type Input = LocaleInput;
-    type Output = LocaleOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -69,15 +65,44 @@ impl ValueObject for Locale {
         Ok(Self(canonical))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
+impl PrimitiveValue for Locale {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
 
+impl Locale {
+    /// Returns the language subtag, e.g. `"en"` from `"en-US"`.
+    pub fn language(&self) -> &str {
+        self.0.split('-').next().unwrap_or(&self.0)
+    }
+
+    /// Returns the region subtag if present, e.g. `Some("US")` from `"en-US"`.
+    pub fn region(&self) -> Option<&str> {
+        let mut parts = self.0.splitn(2, '-');
+        parts.next();
+        parts.next()
+    }
+}
+
+impl TryFrom<String> for Locale {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Locale> for String {
+    fn from(v: Locale) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Locale {
     type Error = ValidationError;
 
@@ -153,8 +178,43 @@ mod tests {
     }
 
     #[test]
+    fn language_subtag() {
+        let l = Locale::new("en-US".into()).unwrap();
+        assert_eq!(l.language(), "en");
+    }
+
+    #[test]
+    fn language_only_locale() {
+        let l = Locale::new("fr".into()).unwrap();
+        assert_eq!(l.language(), "fr");
+        assert_eq!(l.region(), None);
+    }
+
+    #[test]
+    fn region_subtag() {
+        let l = Locale::new("cs-CZ".into()).unwrap();
+        assert_eq!(l.region(), Some("CZ"));
+    }
+
+    #[test]
     fn try_from_str() {
         let l: Locale = "cs-CZ".try_into().unwrap();
         assert_eq!(l.value(), "cs-CZ");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Locale::try_from("en-US").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Locale = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Locale, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

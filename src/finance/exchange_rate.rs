@@ -16,9 +16,6 @@ pub struct ExchangeRateInput {
     pub rate: Decimal,
 }
 
-/// Output type for [`ExchangeRate`] — canonical `"<FROM>/<TO> <rate>"` string.
-pub type ExchangeRateOutput = String;
-
 /// A validated currency exchange rate.
 ///
 /// The `rate` must be strictly positive (> 0) and `from` must differ from `to`.
@@ -43,17 +40,16 @@ pub type ExchangeRateOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct ExchangeRate {
     from: CurrencyCode,
     to: CurrencyCode,
     rate: Decimal,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for ExchangeRate {
     type Input = ExchangeRateInput;
-    type Output = ExchangeRateOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -80,10 +76,6 @@ impl ValueObject for ExchangeRate {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         ExchangeRateInput {
             from: self.from,
@@ -94,6 +86,10 @@ impl ValueObject for ExchangeRate {
 }
 
 impl ExchangeRate {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     /// Returns the source currency.
     pub fn from(&self) -> &CurrencyCode {
         &self.from
@@ -110,6 +106,34 @@ impl ExchangeRate {
     }
 }
 
+impl TryFrom<&str> for ExchangeRate {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("ExchangeRate", value);
+        let (pair_str, rate_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let (from_str, to_str) = pair_str.split_once('/').ok_or_else(err)?;
+        let from = CurrencyCode::new(from_str.to_owned()).map_err(|_| err())?;
+        let to = CurrencyCode::new(to_str.to_owned()).map_err(|_| err())?;
+        let rate: rust_decimal::Decimal = rate_str.trim().parse().map_err(|_| err())?;
+        Self::new(ExchangeRateInput { from, to, rate })
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<ExchangeRate> for String {
+    fn from(v: ExchangeRate) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for ExchangeRate {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for ExchangeRate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.canonical)
@@ -119,7 +143,7 @@ impl std::fmt::Display for ExchangeRate {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::ValueObject;
+    use crate::traits::{PrimitiveValue, ValueObject};
 
     fn eur() -> CurrencyCode {
         CurrencyCode::new("EUR".into()).unwrap()
@@ -219,5 +243,38 @@ mod tests {
         })
         .unwrap();
         assert_eq!(r.to_string(), r.value().to_owned());
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let r = ExchangeRate::try_from("EUR/USD 1.0850").unwrap();
+        assert_eq!(r.value(), "EUR/USD 1.0850");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(ExchangeRate::try_from("EURUSD1.0850").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_missing_slash() {
+        assert!(ExchangeRate::try_from("EURUSD 1.0850").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = ExchangeRate::try_from("EUR/USD 1.0850").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: ExchangeRate = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = ExchangeRate::try_from("EUR/USD 1.0850").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("EUR/USD 1.0850"));
     }
 }

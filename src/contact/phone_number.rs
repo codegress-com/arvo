@@ -1,7 +1,7 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
-use once_cell::sync::Lazy;
+use crate::traits::{PrimitiveValue, ValueObject};
 use regex::Regex;
+use std::sync::LazyLock;
 
 use super::country_code::CountryCode;
 
@@ -14,11 +14,8 @@ pub struct PhoneNumberInput {
     pub number: String,
 }
 
-/// Output type for [`PhoneNumber`] — canonical E.164 string, e.g. `"+420123456789"`.
-pub type PhoneNumberOutput = String;
-
 /// Validates the local number part: digits only, 4–14 characters.
-static NUMBER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4,14}$").unwrap());
+static NUMBER_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d{4,14}$").unwrap());
 
 /// A validated phone number stored in canonical E.164 format.
 ///
@@ -61,7 +58,6 @@ impl From<PhoneNumber> for String {
 
 impl ValueObject for PhoneNumber {
     type Input = PhoneNumberInput;
-    type Output = PhoneNumberOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -76,7 +72,8 @@ impl ValueObject for PhoneNumber {
             return Err(ValidationError::invalid("PhoneNumber", &number));
         }
 
-        let prefix = calling_code(value.country_code.value());
+        let prefix = calling_code(value.country_code.value())
+            .ok_or_else(|| ValidationError::invalid("PhoneNumber", value.country_code.value()))?;
         let e164 = format!("{}{}", prefix, number);
 
         Ok(Self {
@@ -88,19 +85,19 @@ impl ValueObject for PhoneNumber {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.e164
-    }
-
     fn into_inner(self) -> Self::Input {
         self.input
     }
 }
 
 impl PhoneNumber {
+    pub fn value(&self) -> &str {
+        &self.e164
+    }
+
     /// Returns the ITU calling code prefix, e.g. `"+420"`.
     pub fn calling_code(&self) -> &str {
-        calling_code(self.input.country_code.value())
+        calling_code(self.input.country_code.value()).unwrap_or("+0")
     }
 
     /// Returns the local number digits without the calling code, e.g. `"123456789"`.
@@ -121,10 +118,8 @@ impl std::fmt::Display for PhoneNumber {
     }
 }
 
-/// Maps an ISO 3166-1 alpha-2 country code to its ITU calling code prefix.
-/// Returns `"+0"` for unknown codes — callers should ensure valid CountryCode input.
-fn calling_code(country: &str) -> &'static str {
-    match country {
+fn calling_code(country: &str) -> Option<&'static str> {
+    Some(match country {
         "AF" => "+93",
         "AL" => "+355",
         "DZ" => "+213",
@@ -375,14 +370,14 @@ fn calling_code(country: &str) -> &'static str {
         "WF" => "+681",
         "EH" => "+212",
         "KY" => "+1345",
-        _ => "+0",
-    }
+        _ => return None,
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::ValueObject;
+    use crate::traits::{PrimitiveValue, ValueObject};
 
     fn cz() -> CountryCode {
         CountryCode::new("CZ".into()).unwrap()

@@ -14,9 +14,6 @@ pub struct MoneyInput {
     pub currency: CurrencyCode,
 }
 
-/// Output type for [`Money`] — canonical `"<amount> <currency>"` string.
-pub type MoneyOutput = String;
-
 /// A validated monetary amount with an associated currency.
 ///
 /// `amount` may be any finite `Decimal` value; negative amounts represent debts.
@@ -39,16 +36,15 @@ pub type MoneyOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Money {
     amount: Decimal,
     currency: CurrencyCode,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for Money {
     type Input = MoneyInput;
-    type Output = MoneyOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -60,10 +56,6 @@ impl ValueObject for Money {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         MoneyInput {
             amount: self.amount,
@@ -73,6 +65,10 @@ impl ValueObject for Money {
 }
 
 impl Money {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     /// Returns the monetary amount.
     pub fn amount(&self) -> &Decimal {
         &self.amount
@@ -81,6 +77,77 @@ impl Money {
     /// Returns the currency code.
     pub fn currency(&self) -> &CurrencyCode {
         &self.currency
+    }
+
+    /// Returns the sum of `self` and `other`. Fails if currencies differ.
+    pub fn add(&self, other: &Money) -> Result<Money, ValidationError> {
+        if self.currency != other.currency {
+            return Err(ValidationError::invalid(
+                "Money",
+                &format!("cannot add {} and {}", self.currency, other.currency),
+            ));
+        }
+        let sum = self.amount + other.amount;
+        let canonical = format!("{:.2} {}", sum, self.currency);
+        Ok(Money {
+            amount: sum,
+            currency: self.currency.clone(),
+            canonical,
+        })
+    }
+
+    /// Returns the difference `self - other`. Fails if currencies differ.
+    pub fn sub(&self, other: &Money) -> Result<Money, ValidationError> {
+        if self.currency != other.currency {
+            return Err(ValidationError::invalid(
+                "Money",
+                &format!("cannot subtract {} and {}", self.currency, other.currency),
+            ));
+        }
+        let diff = self.amount - other.amount;
+        let canonical = format!("{:.2} {}", diff, self.currency);
+        Ok(Money {
+            amount: diff,
+            currency: self.currency.clone(),
+            canonical,
+        })
+    }
+
+    /// Returns the negation of this amount (e.g. a debt).
+    pub fn neg(&self) -> Money {
+        let negated = -self.amount;
+        let canonical = format!("{:.2} {}", negated, self.currency);
+        Money {
+            amount: negated,
+            currency: self.currency.clone(),
+            canonical,
+        }
+    }
+}
+
+impl TryFrom<&str> for Money {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Money", value);
+        let (amount_str, currency_str) = value.trim().rsplit_once(' ').ok_or_else(err)?;
+        let amount: rust_decimal::Decimal = amount_str.trim().parse().map_err(|_| err())?;
+        let currency = CurrencyCode::new(currency_str.trim().to_owned()).map_err(|_| err())?;
+        Self::new(MoneyInput { amount, currency })
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Money> for String {
+    fn from(v: Money) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for Money {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
     }
 }
 
@@ -93,7 +160,7 @@ impl std::fmt::Display for Money {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::ValueObject;
+    use crate::traits::{PrimitiveValue, ValueObject};
 
     fn eur() -> CurrencyCode {
         CurrencyCode::new("EUR".into()).unwrap()
@@ -174,6 +241,63 @@ mod tests {
     }
 
     #[test]
+    fn add_same_currency() {
+        let a = Money::new(MoneyInput {
+            amount: "10.00".parse().unwrap(),
+            currency: eur(),
+        })
+        .unwrap();
+        let b = Money::new(MoneyInput {
+            amount: "5.50".parse().unwrap(),
+            currency: eur(),
+        })
+        .unwrap();
+        let result = a.add(&b).unwrap();
+        assert_eq!(result.value(), "15.50 EUR");
+    }
+
+    #[test]
+    fn add_different_currencies_fails() {
+        let a = Money::new(MoneyInput {
+            amount: "10.00".parse().unwrap(),
+            currency: eur(),
+        })
+        .unwrap();
+        let b = Money::new(MoneyInput {
+            amount: "5.00".parse().unwrap(),
+            currency: usd(),
+        })
+        .unwrap();
+        assert!(a.add(&b).is_err());
+    }
+
+    #[test]
+    fn sub_same_currency() {
+        let a = Money::new(MoneyInput {
+            amount: "10.00".parse().unwrap(),
+            currency: eur(),
+        })
+        .unwrap();
+        let b = Money::new(MoneyInput {
+            amount: "3.00".parse().unwrap(),
+            currency: eur(),
+        })
+        .unwrap();
+        let result = a.sub(&b).unwrap();
+        assert_eq!(result.value(), "7.00 EUR");
+    }
+
+    #[test]
+    fn neg_returns_negated_amount() {
+        let m = Money::new(MoneyInput {
+            amount: "10.00".parse().unwrap(),
+            currency: eur(),
+        })
+        .unwrap();
+        assert_eq!(m.neg().value(), "-10.00 EUR");
+    }
+
+    #[test]
     fn into_inner_roundtrip() {
         let input = MoneyInput {
             amount: "1.00".parse().unwrap(),
@@ -181,5 +305,38 @@ mod tests {
         };
         let m = Money::new(input.clone()).unwrap();
         assert_eq!(m.into_inner(), input);
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let m = Money::try_from("10.50 EUR").unwrap();
+        assert_eq!(m.value(), "10.50 EUR");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Money::try_from("10.50EUR").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_invalid_currency() {
+        assert!(Money::try_from("10.50 INVALID").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Money::try_from("10.50 EUR").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Money = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = Money::try_from("10.50 EUR").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("10.50 EUR"));
     }
 }

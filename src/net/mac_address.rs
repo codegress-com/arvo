@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`MacAddress`].
 pub type MacAddressInput = String;
-
-/// Output type for [`MacAddress`].
-pub type MacAddressOutput = String;
 
 /// A validated MAC address, normalised to lowercase colon-separated hex.
 ///
@@ -26,12 +23,11 @@ pub type MacAddressOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct MacAddress(String);
 
 impl ValueObject for MacAddress {
     type Input = MacAddressInput;
-    type Output = MacAddressOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -52,12 +48,14 @@ impl ValueObject for MacAddress {
         Ok(Self(canonical))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for MacAddress {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -106,6 +104,19 @@ fn parse_mac_bytes(s: &str) -> Option<[u8; 6]> {
     None
 }
 
+impl TryFrom<String> for MacAddress {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<MacAddress> for String {
+    fn from(v: MacAddress) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for MacAddress {
     type Error = ValidationError;
 
@@ -167,5 +178,21 @@ mod tests {
     fn try_from_str() {
         let mac: MacAddress = "aa:bb:cc:dd:ee:ff".try_into().unwrap();
         assert_eq!(mac.value(), "aa:bb:cc:dd:ee:ff");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = MacAddress::try_from("00:1A:2B:3C:4D:5E").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: MacAddress = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<MacAddress, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

@@ -1,20 +1,17 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
-use once_cell::sync::Lazy;
+use crate::traits::{PrimitiveValue, ValueObject};
 use regex::Regex;
+use std::sync::LazyLock;
 
 /// Input type for [`EmailAddress`] — a raw string before validation.
 pub type EmailAddressInput = String;
-
-/// Output type for [`EmailAddress`] — a normalised lowercase string.
-pub type EmailAddressOutput = String;
 
 /// Compiled email regex — evaluated once at first use.
 ///
 /// Pattern checks for a local part, `@`, a domain, and a TLD of at least
 /// 2 characters. Full RFC 5322 compliance is intentionally out of scope.
-static EMAIL_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$").unwrap());
+static EMAIL_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$").unwrap());
 
 /// A validated, normalised email address.
 ///
@@ -34,12 +31,11 @@ static EMAIL_REGEX: Lazy<Regex> =
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct EmailAddress(String);
 
 impl ValueObject for EmailAddress {
     type Input = EmailAddressInput;
-    type Output = EmailAddressOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -56,12 +52,14 @@ impl ValueObject for EmailAddress {
         Ok(Self(normalised))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for EmailAddress {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -78,6 +76,19 @@ impl EmailAddress {
 }
 
 /// Allows ergonomic construction from a string literal: `"a@b.com".try_into()`
+impl TryFrom<String> for EmailAddress {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<EmailAddress> for String {
+    fn from(v: EmailAddress) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for EmailAddress {
     type Error = ValidationError;
 
@@ -142,5 +153,21 @@ mod tests {
     fn try_from_str() {
         let e: EmailAddress = "hello@example.com".try_into().unwrap();
         assert_eq!(e.value(), "hello@example.com");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = EmailAddress::try_from("user@example.com").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: EmailAddress = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<EmailAddress, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

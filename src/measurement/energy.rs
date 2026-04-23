@@ -13,6 +13,20 @@ pub enum EnergyUnit {
     Kcal,
 }
 
+#[cfg(feature = "serde")]
+impl From<Energy> for String {
+    fn from(v: Energy) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for Energy {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for EnergyUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -48,16 +62,15 @@ pub struct EnergyInput {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Energy {
     value: f64,
     unit: EnergyUnit,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for Energy {
     type Input = EnergyInput;
-    type Output = str;
     type Error = ValidationError;
 
     fn new(input: Self::Input) -> Result<Self, Self::Error> {
@@ -72,9 +85,6 @@ impl ValueObject for Energy {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
     fn into_inner(self) -> Self::Input {
         EnergyInput {
             value: self.value,
@@ -84,11 +94,35 @@ impl ValueObject for Energy {
 }
 
 impl Energy {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     pub fn amount(&self) -> f64 {
         self.value
     }
     pub fn unit(&self) -> &EnergyUnit {
         &self.unit
+    }
+}
+
+impl TryFrom<&str> for Energy {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Energy", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "J" => EnergyUnit::J,
+            "kJ" => EnergyUnit::KJ,
+            "MJ" => EnergyUnit::MJ,
+            "kWh" => EnergyUnit::KWh,
+            "cal" => EnergyUnit::Cal,
+            "kcal" => EnergyUnit::Kcal,
+            _ => return Err(err()),
+        };
+        Self::new(EnergyInput { value: val, unit })
     }
 }
 
@@ -143,5 +177,38 @@ mod tests {
             })
             .is_err()
         );
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let e = Energy::try_from("1.5 kJ").unwrap();
+        assert_eq!(e.value(), "1.5 kJ");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Energy::try_from("1.5").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Energy::try_from("1.5 BTU").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Energy::try_from("1.5 kJ").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Energy = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = Energy::try_from("1.5 kJ").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("1.5 kJ"));
     }
 }

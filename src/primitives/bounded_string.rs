@@ -1,5 +1,5 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// A string whose length (in Unicode characters) is constrained to `MIN..=MAX`.
 ///
@@ -24,12 +24,11 @@ use crate::traits::ValueObject;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct BoundedString<const MIN: usize, const MAX: usize>(String);
 
 impl<const MIN: usize, const MAX: usize> ValueObject for BoundedString<MIN, MAX> {
     type Input = String;
-    type Output = String;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -52,12 +51,30 @@ impl<const MIN: usize, const MAX: usize> ValueObject for BoundedString<MIN, MAX>
         Ok(Self(trimmed))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+
+impl<const MIN: usize, const MAX: usize> PrimitiveValue for BoundedString<MIN, MAX> {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
+
+impl<const MIN: usize, const MAX: usize> TryFrom<String> for BoundedString<MIN, MAX> {
+    type Error = ValidationError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<const MIN: usize, const MAX: usize> From<BoundedString<MIN, MAX>> for String {
+    fn from(v: BoundedString<MIN, MAX>) -> String {
+        v.0
     }
 }
 

@@ -1,5 +1,5 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 use super::Coordinate;
 
@@ -38,16 +38,15 @@ pub struct BoundingBoxInput {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct BoundingBox {
     sw: Coordinate,
     ne: Coordinate,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for BoundingBox {
     type Input = BoundingBoxInput;
-    type Output = str;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -71,10 +70,6 @@ impl ValueObject for BoundingBox {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
-
     fn into_inner(self) -> Self::Input {
         BoundingBoxInput {
             sw: self.sw,
@@ -84,6 +79,10 @@ impl ValueObject for BoundingBox {
 }
 
 impl BoundingBox {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     /// Returns the south-west corner.
     pub fn sw(&self) -> &Coordinate {
         &self.sw
@@ -92,6 +91,44 @@ impl BoundingBox {
     /// Returns the north-east corner.
     pub fn ne(&self) -> &Coordinate {
         &self.ne
+    }
+
+    /// Returns `true` if `coord` lies within this bounding box (inclusive on all edges).
+    pub fn contains(&self, coord: &Coordinate) -> bool {
+        let lat = coord.lat().value();
+        let lng = coord.lng().value();
+        lat >= self.sw.lat().value()
+            && lat <= self.ne.lat().value()
+            && lng >= self.sw.lng().value()
+            && lng <= self.ne.lng().value()
+    }
+}
+
+impl TryFrom<&str> for BoundingBox {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("BoundingBox", value);
+        let (sw_part, ne_part) = value.trim().split_once(" / ").ok_or_else(err)?;
+        let sw_str = sw_part.strip_prefix("SW: ").ok_or_else(err)?;
+        let ne_str = ne_part.strip_prefix("NE: ").ok_or_else(err)?;
+        let sw = Coordinate::try_from(sw_str).map_err(|_| err())?;
+        let ne = Coordinate::try_from(ne_str).map_err(|_| err())?;
+        Self::new(BoundingBoxInput { sw, ne })
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<BoundingBox> for String {
+    fn from(v: BoundingBox) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for BoundingBox {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
     }
 }
 
@@ -170,6 +207,37 @@ mod tests {
     }
 
     #[test]
+    fn contains_inside() {
+        let bbox = BoundingBox::new(BoundingBoxInput {
+            sw: coord(48.0, 14.0),
+            ne: coord(51.0, 18.0),
+        })
+        .unwrap();
+        assert!(bbox.contains(&coord(50.0, 16.0)));
+    }
+
+    #[test]
+    fn contains_on_edge() {
+        let bbox = BoundingBox::new(BoundingBoxInput {
+            sw: coord(48.0, 14.0),
+            ne: coord(51.0, 18.0),
+        })
+        .unwrap();
+        assert!(bbox.contains(&coord(48.0, 14.0)));
+        assert!(bbox.contains(&coord(51.0, 18.0)));
+    }
+
+    #[test]
+    fn contains_outside() {
+        let bbox = BoundingBox::new(BoundingBoxInput {
+            sw: coord(48.0, 14.0),
+            ne: coord(51.0, 18.0),
+        })
+        .unwrap();
+        assert!(!bbox.contains(&coord(52.0, 16.0)));
+    }
+
+    #[test]
     fn display_matches_value() {
         let bbox = BoundingBox::new(BoundingBoxInput {
             sw: coord(48.0, 14.0),
@@ -177,5 +245,44 @@ mod tests {
         })
         .unwrap();
         assert_eq!(bbox.to_string(), bbox.value());
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let bbox =
+            BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
+        assert!(bbox.value().starts_with("SW:"));
+        assert!(bbox.value().contains("NE:"));
+    }
+
+    #[test]
+    fn try_from_rejects_missing_prefix() {
+        assert!(BoundingBox::try_from("48.0, 14.0 / 51.0, 18.0").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_sw_north_of_ne() {
+        assert!(
+            BoundingBox::try_from("SW: 52.000000, 14.000000 / NE: 51.000000, 18.000000").is_err()
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v =
+            BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: BoundingBox = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v =
+            BoundingBox::try_from("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("SW: 48.000000, 14.000000 / NE: 51.000000, 18.000000"));
     }
 }

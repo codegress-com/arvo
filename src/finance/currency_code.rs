@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`CurrencyCode`].
 pub type CurrencyCodeInput = String;
-
-/// Output type for [`CurrencyCode`].
-pub type CurrencyCodeOutput = String;
 
 /// Active ISO 4217 alphabetic currency codes, sorted for binary search.
 static ISO_4217: &[&str] = &[
@@ -44,12 +41,11 @@ static ISO_4217: &[&str] = &[
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct CurrencyCode(String);
 
 impl ValueObject for CurrencyCode {
     type Input = CurrencyCodeInput;
-    type Output = CurrencyCodeOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -70,15 +66,30 @@ impl ValueObject for CurrencyCode {
         Ok(Self(upper))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
+impl PrimitiveValue for CurrencyCode {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
 
+impl TryFrom<String> for CurrencyCode {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<CurrencyCode> for String {
+    fn from(v: CurrencyCode) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for CurrencyCode {
     type Error = ValidationError;
 
@@ -150,5 +161,21 @@ mod tests {
     fn try_from_str() {
         let c: CurrencyCode = "GBP".try_into().unwrap();
         assert_eq!(c.value(), "GBP");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = CurrencyCode::try_from("EUR").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: CurrencyCode = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<CurrencyCode, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

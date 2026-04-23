@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Domain`].
 pub type DomainInput = String;
-
-/// Output type for [`Domain`].
-pub type DomainOutput = String;
 
 /// A validated domain name without a scheme (e.g. `"example.com"`).
 ///
@@ -27,12 +24,11 @@ pub type DomainOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Domain(String);
 
 impl ValueObject for Domain {
     type Input = DomainInput;
-    type Output = DomainOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -49,12 +45,14 @@ impl ValueObject for Domain {
         Ok(Self(normalised))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Domain {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -84,6 +82,19 @@ fn is_valid_domain(s: &str) -> bool {
     true
 }
 
+impl TryFrom<String> for Domain {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Domain> for String {
+    fn from(v: Domain) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Domain {
     type Error = ValidationError;
 
@@ -153,5 +164,21 @@ mod tests {
     fn try_from_str() {
         let d: Domain = "example.org".try_into().unwrap();
         assert_eq!(d.value(), "example.org");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Domain::try_from("example.com").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Domain = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<Domain, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

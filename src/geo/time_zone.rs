@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`TimeZone`].
 pub type TimeZoneInput = String;
-
-/// Output type for [`TimeZone`].
-pub type TimeZoneOutput = String;
 
 /// Sorted list of canonical IANA timezone names.
 static IANA_TIMEZONES: &[&str] = &[
@@ -456,12 +453,11 @@ static IANA_TIMEZONES: &[&str] = &[
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct TimeZone(String);
 
 impl ValueObject for TimeZone {
     type Input = TimeZoneInput;
-    type Output = TimeZoneOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -478,15 +474,30 @@ impl ValueObject for TimeZone {
         Ok(Self(trimmed.to_owned()))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
     }
 }
+impl PrimitiveValue for TimeZone {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
+    }
+}
 
+impl TryFrom<String> for TimeZone {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<TimeZone> for String {
+    fn from(v: TimeZone) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for TimeZone {
     type Error = ValidationError;
 
@@ -546,5 +557,21 @@ mod tests {
     fn try_from_str() {
         let tz: TimeZone = "Asia/Tokyo".try_into().unwrap();
         assert_eq!(tz.value(), "Asia/Tokyo");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = TimeZone::try_from("Europe/Prague").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: TimeZone = serde_json::from_str(&json).unwrap();
+        assert_eq!(v, back);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<TimeZone, _> = serde_json::from_str("\"__invalid__\"");
+        assert!(result.is_err());
     }
 }

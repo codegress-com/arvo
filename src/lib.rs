@@ -15,8 +15,9 @@
 //! arvo = { version = "0.9", features = ["contact", "finance"] }
 //! ```
 //!
-//! Available features: `contact`, `serde`, `full`.
-//! See [ROADMAP.md](https://github.com/codegress-com/arvo/blob/main/ROADMAP.md) for planned modules.
+//! Available features: `contact`, `finance`, `geo`, `identifiers`, `measurement`, `net`,
+//! `primitives`, `temporal`, `serde`, `full`.
+//! See [ROADMAP.md](https://github.com/codegress-com/arvo/blob/main/ROADMAP.md) for the full type list.
 //!
 //! ## Quick start
 //!
@@ -31,8 +32,8 @@
 //!
 //! // Composite value object — structured input, canonical output
 //! let phone = PhoneNumber::new(PhoneNumberInput {
-//!     country_code: CountryCode::new("CZ".into())?,
-//!     number: "123456789".into(),
+//! country_code: CountryCode::new("CZ".into())?,
+//! number: "123456789".into(),
 //! })?;
 //! assert_eq!(phone.value(), "+420123456789");
 //! # Ok::<(), arvo::errors::ValidationError>(())
@@ -71,17 +72,60 @@ pub mod temporal;
 /// the most common value object types into scope without long paths.
 pub mod prelude {
     pub use crate::errors::ValidationError;
-    pub use crate::traits::ValueObject;
+    pub use crate::traits::{PrimitiveValue, ValueObject};
 
     #[cfg(feature = "contact")]
-    pub use crate::contact::{CountryCode, EmailAddress};
+    pub use crate::contact::{
+        CountryCode, CountryCodeInput, EmailAddress, EmailAddressInput, PhoneNumber,
+        PhoneNumberInput, PostalAddress, PostalAddressInput, Website, WebsiteInput,
+    };
+
+    #[cfg(feature = "finance")]
+    pub use crate::finance::{
+        Bic, BicInput, CardExpiryDate, CardExpiryDateInput, CreditCardNumber,
+        CreditCardNumberInput, CurrencyCode, CurrencyCodeInput, ExchangeRate, ExchangeRateInput,
+        Iban, IbanInput, Money, MoneyInput, Percentage, PercentageInput, VatNumber, VatNumberInput,
+    };
+
+    #[cfg(feature = "geo")]
+    pub use crate::geo::{
+        BoundingBox, BoundingBoxInput, Coordinate, CoordinateInput, CountryRegion,
+        CountryRegionInput, Latitude, LatitudeInput, Longitude, LongitudeInput, TimeZone,
+        TimeZoneInput,
+    };
 
     #[cfg(feature = "identifiers")]
-    pub use crate::identifiers::{Ean8, Ean13, Isbn10, Isbn13, Issn, Slug, Vin};
+    pub use crate::identifiers::{
+        Ean8, Ean8Input, Ean13, Ean13Input, Isbn10, Isbn10Input, Isbn13, Isbn13Input, Issn,
+        IssnInput, Slug, SlugInput, Vin, VinInput,
+    };
+
+    #[cfg(feature = "measurement")]
+    pub use crate::measurement::{
+        Area, AreaInput, AreaUnit, Energy, EnergyInput, EnergyUnit, Frequency, FrequencyInput,
+        FrequencyUnit, Length, LengthInput, LengthUnit, Power, PowerInput, PowerUnit, Pressure,
+        PressureInput, PressureUnit, Speed, SpeedInput, SpeedUnit, Temperature, TemperatureInput,
+        TemperatureUnit, Volume, VolumeInput, VolumeUnit, Weight, WeightInput, WeightUnit,
+    };
+
+    #[cfg(feature = "net")]
+    pub use crate::net::{
+        ApiKey, ApiKeyInput, Domain, DomainInput, HttpStatusCode, HttpStatusCodeInput, IpAddress,
+        IpAddressInput, IpV4Address, IpV4AddressInput, IpV6Address, IpV6AddressInput, MacAddress,
+        MacAddressInput, MimeType, MimeTypeInput, Port, PortInput, Url, UrlInput,
+    };
 
     #[cfg(feature = "primitives")]
     pub use crate::primitives::{
-        Base64String, BoundedString, HexColor, Locale, NonEmptyString, NonNegativeDecimal,
-        NonNegativeInt, PositiveDecimal, PositiveInt, Probability,
+        Base64String, Base64StringInput, BoundedString, HexColor, HexColorInput, Locale,
+        LocaleInput, NonEmptyString, NonEmptyStringInput, NonNegativeDecimal,
+        NonNegativeDecimalInput, NonNegativeInt, NonNegativeIntInput, PositiveDecimal,
+        PositiveDecimalInput, PositiveInt, PositiveIntInput, Probability, ProbabilityInput,
+    };
+
+    #[cfg(feature = "temporal")]
+    pub use crate::temporal::{
+        BirthDate, BirthDateInput, BusinessHours, BusinessHoursInput, ExpiryDate, ExpiryDateInput,
+        TimeRange, TimeRangeInput, UnixTimestamp, UnixTimestampInput,
     };
 }

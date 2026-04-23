@@ -14,6 +14,20 @@ pub enum AreaUnit {
     Ha,
 }
 
+#[cfg(feature = "serde")]
+impl From<Area> for String {
+    fn from(v: Area) -> String {
+        v.canonical
+    }
+}
+
+impl TryFrom<String> for Area {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(s.as_str())
+    }
+}
+
 impl std::fmt::Display for AreaUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -50,16 +64,15 @@ pub struct AreaInput {
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Area {
     value: f64,
     unit: AreaUnit,
-    #[cfg_attr(feature = "serde", serde(skip))]
     canonical: String,
 }
 
 impl ValueObject for Area {
     type Input = AreaInput;
-    type Output = str;
     type Error = ValidationError;
 
     fn new(input: Self::Input) -> Result<Self, Self::Error> {
@@ -74,9 +87,6 @@ impl ValueObject for Area {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.canonical
-    }
     fn into_inner(self) -> Self::Input {
         AreaInput {
             value: self.value,
@@ -86,11 +96,36 @@ impl ValueObject for Area {
 }
 
 impl Area {
+    pub fn value(&self) -> &str {
+        &self.canonical
+    }
+
     pub fn amount(&self) -> f64 {
         self.value
     }
     pub fn unit(&self) -> &AreaUnit {
         &self.unit
+    }
+}
+
+impl TryFrom<&str> for Area {
+    type Error = ValidationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let err = || ValidationError::invalid("Area", value);
+        let (val_str, unit_str) = value.trim().split_once(' ').ok_or_else(err)?;
+        let val: f64 = val_str.trim().parse().map_err(|_| err())?;
+        let unit = match unit_str.trim() {
+            "mm²" => AreaUnit::Mm2,
+            "cm²" => AreaUnit::Cm2,
+            "m²" => AreaUnit::M2,
+            "km²" => AreaUnit::Km2,
+            "in²" => AreaUnit::In2,
+            "ft²" => AreaUnit::Ft2,
+            "ha" => AreaUnit::Ha,
+            _ => return Err(err()),
+        };
+        Self::new(AreaInput { value: val, unit })
     }
 }
 
@@ -145,5 +180,38 @@ mod tests {
             })
             .is_err()
         );
+    }
+
+    #[test]
+    fn try_from_parses_valid() {
+        let a = Area::try_from("1.5 m²").unwrap();
+        assert_eq!(a.value(), "1.5 m²");
+    }
+
+    #[test]
+    fn try_from_rejects_no_space() {
+        assert!(Area::try_from("1.5").is_err());
+    }
+
+    #[test]
+    fn try_from_rejects_unknown_unit() {
+        assert!(Area::try_from("1.5 acres").is_err());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let v = Area::try_from("1.5 m²").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        let back: Area = serde_json::from_str(&json).unwrap();
+        assert_eq!(v.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_serializes_as_canonical_string() {
+        let v = Area::try_from("1.5 m²").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("1.5"));
     }
 }

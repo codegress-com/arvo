@@ -1,11 +1,8 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 /// Input type for [`Url`].
 pub type UrlInput = String;
-
-/// Output type for [`Url`].
-pub type UrlOutput = String;
 
 /// A validated URL. Accepts `http`, `https`, `ftp`, `ftps`, `ws`, and `wss` schemes.
 /// Scheme and host are normalised to lowercase on construction.
@@ -25,14 +22,13 @@ pub type UrlOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub struct Url(String);
 
 const ALLOWED_SCHEMES: &[&str] = &["ftp", "ftps", "http", "https", "ws", "wss"];
 
 impl ValueObject for Url {
     type Input = UrlInput;
-    type Output = UrlOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -59,12 +55,14 @@ impl ValueObject for Url {
         Ok(Self(canonical))
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.0
-    }
-
     fn into_inner(self) -> Self::Input {
         self.0
+    }
+}
+impl PrimitiveValue for Url {
+    type Primitive = String;
+    fn value(&self) -> &String {
+        &self.0
     }
 }
 
@@ -74,19 +72,40 @@ impl Url {
         self.0.split("://").next().unwrap_or("")
     }
 
-    /// Returns the host, e.g. `"example.com"`.
+    /// Returns the host without port, e.g. `"example.com"`.
     pub fn host(&self) -> &str {
         let after_scheme = self.0.split("://").nth(1).unwrap_or("");
-        after_scheme
+        let host_and_port = after_scheme
             .split('/')
             .next()
             .unwrap_or("")
             .split('?')
             .next()
-            .unwrap_or("")
+            .unwrap_or("");
+        if host_and_port.starts_with('[') {
+            // IPv6 literal: "[::1]:8080" → "[::1]"
+            if let Some(i) = host_and_port.find(']') {
+                return &host_and_port[..=i];
+            }
+            return host_and_port;
+        }
+        host_and_port.split(':').next().unwrap_or(host_and_port)
     }
 }
 
+impl TryFrom<String> for Url {
+    type Error = ValidationError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::new(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Url> for String {
+    fn from(v: Url) -> String {
+        v.0
+    }
+}
 impl TryFrom<&str> for Url {
     type Error = ValidationError;
 
@@ -152,6 +171,12 @@ mod tests {
     #[test]
     fn rejects_no_host() {
         assert!(Url::new("https://".into()).is_err());
+    }
+
+    #[test]
+    fn host_strips_port() {
+        let url = Url::new("https://example.com:8080/path".into()).unwrap();
+        assert_eq!(url.host(), "example.com");
     }
 
     #[test]

@@ -1,10 +1,11 @@
 use crate::errors::ValidationError;
-use crate::traits::ValueObject;
+use crate::traits::{PrimitiveValue, ValueObject};
 
 use super::country_code::CountryCode;
 
 /// Input type for [`PostalAddress`] construction.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PostalAddressInput {
     /// Street name and number, e.g. `"Václavské náměstí 1"`.
     pub street: String,
@@ -15,9 +16,6 @@ pub struct PostalAddressInput {
     /// ISO 3166-1 alpha-2 country code.
     pub country: CountryCode,
 }
-
-/// Output type for [`PostalAddress`] — a human-readable multi-line string.
-pub type PostalAddressOutput = String;
 
 /// A validated postal address.
 ///
@@ -52,19 +50,20 @@ pub type PostalAddressOutput = String;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(try_from = "PostalAddressInput", into = "PostalAddressInput")
+)]
 pub struct PostalAddress {
     street: String,
     city: String,
     zip: String,
     country: CountryCode,
-    /// Pre-computed display string.
-    #[cfg_attr(feature = "serde", serde(skip))]
     formatted: String,
 }
 
 impl ValueObject for PostalAddress {
     type Input = PostalAddressInput;
-    type Output = PostalAddressOutput;
     type Error = ValidationError;
 
     fn new(value: Self::Input) -> Result<Self, Self::Error> {
@@ -93,10 +92,6 @@ impl ValueObject for PostalAddress {
         })
     }
 
-    fn value(&self) -> &Self::Output {
-        &self.formatted
-    }
-
     fn into_inner(self) -> Self::Input {
         PostalAddressInput {
             street: self.street,
@@ -108,6 +103,10 @@ impl ValueObject for PostalAddress {
 }
 
 impl PostalAddress {
+    pub fn value(&self) -> &str {
+        &self.formatted
+    }
+
     /// Returns the street field, e.g. `"Václavské náměstí 1"`.
     pub fn street(&self) -> &str {
         &self.street
@@ -129,6 +128,20 @@ impl PostalAddress {
     }
 }
 
+impl TryFrom<PostalAddressInput> for PostalAddress {
+    type Error = ValidationError;
+    fn try_from(input: PostalAddressInput) -> Result<Self, Self::Error> {
+        Self::new(input)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<PostalAddress> for PostalAddressInput {
+    fn from(a: PostalAddress) -> PostalAddressInput {
+        a.into_inner()
+    }
+}
+
 /// Displays the address in a human-readable multi-line format.
 impl std::fmt::Display for PostalAddress {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -139,7 +152,7 @@ impl std::fmt::Display for PostalAddress {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::ValueObject;
+    use crate::traits::{PrimitiveValue, ValueObject};
 
     fn cz() -> CountryCode {
         CountryCode::new("CZ".into()).unwrap()
@@ -232,5 +245,22 @@ mod tests {
         let a = PostalAddress::new(valid_input()).unwrap();
         let b = PostalAddress::new(valid_input()).unwrap();
         assert_eq!(a, b);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_roundtrip() {
+        let addr = PostalAddress::new(valid_input()).unwrap();
+        let json = serde_json::to_string(&addr).unwrap();
+        let back: PostalAddress = serde_json::from_str(&json).unwrap();
+        assert_eq!(addr.value(), back.value());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_deserialize_validates() {
+        let result: Result<PostalAddress, _> =
+            serde_json::from_str(r#"{"street":"","city":"Prague","zip":"110 00","country":"CZ"}"#);
+        assert!(result.is_err());
     }
 }

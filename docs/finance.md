@@ -73,6 +73,16 @@ assert_eq!(money.currency().value(), "EUR");
 | `currency()` | `&CurrencyCode` | `CurrencyCode("EUR")` |
 | `into_inner()` | `MoneyInput` | — |
 
+### Arithmetic helpers
+
+All operations are immutable — they return a new `Money` or `Result<Money>`.
+
+| Method | Returns | Notes |
+|---|---|---|
+| `add(&Money)` | `Result<Money>` | Fails if currencies differ |
+| `sub(&Money)` | `Result<Money>` | Fails if currencies differ; result may be negative |
+| `neg()` | `Money` | Negates the amount; always succeeds |
+
 ---
 
 ## Iban
@@ -196,6 +206,7 @@ assert!(Percentage::new(f64::NAN).is_err());
 | Method | Returns | Example |
 |---|---|---|
 | `value()` | `&f64` | `42.5` |
+| `as_fraction()` | `f64` | `0.425` (divides by 100) |
 | `into_inner()` | `f64` | `42.5` |
 
 ---
@@ -294,6 +305,7 @@ assert!(CardExpiryDate::new("01/20".into()).is_err()); // past
 | `value()` | `&String` | `"12/28"` |
 | `month()` | `u8` | `12` |
 | `year()` | `u16` | `2028` |
+| `months_until()` | `u32` | full months remaining until expiry |
 | `into_inner()` | `String` | — |
 
 ### Errors
