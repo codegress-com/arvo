@@ -4,7 +4,7 @@ Feature flag: `measurement`
 
 ```toml
 [dependencies]
-arvo = { version = "0.9", features = ["measurement"] }
+arvo = { version = "1.0", features = ["measurement"] }
 ```
 
 All measurement types share the same pattern: `XxxInput { value: f64, unit: XxxUnit }`.
@@ -18,7 +18,7 @@ All measurement types share the same pattern: `XxxInput { value: f64, unit: XxxU
 
 ```rust,ignore
 use arvo::measurement::{Length, LengthInput, LengthUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let len = Length::new(LengthInput { value: 1.80, unit: LengthUnit::M })?;
 assert_eq!(len.value(), "1.8 m");
@@ -39,7 +39,7 @@ assert_eq!(len.amount(), 1.80);
 
 ```rust,ignore
 use arvo::measurement::{Weight, WeightInput, WeightUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let w = Weight::new(WeightInput { value: 75.0, unit: WeightUnit::Kg })?;
 assert_eq!(w.value(), "75 kg");
@@ -54,7 +54,7 @@ assert_eq!(w.value(), "75 kg");
 
 ```rust,ignore
 use arvo::measurement::{Temperature, TemperatureInput, TemperatureUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let t = Temperature::new(TemperatureInput { value: 100.0, unit: TemperatureUnit::Celsius })?;
 assert_eq!(t.value(), "100 °C");
@@ -70,7 +70,7 @@ assert!(Temperature::new(TemperatureInput { value: -274.0, unit: TemperatureUnit
 
 ```rust,ignore
 use arvo::measurement::{Volume, VolumeInput, VolumeUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let v = Volume::new(VolumeInput { value: 1.5, unit: VolumeUnit::L })?;
 assert_eq!(v.value(), "1.5 l");
@@ -84,7 +84,7 @@ assert_eq!(v.value(), "1.5 l");
 
 ```rust,ignore
 use arvo::measurement::{Area, AreaInput, AreaUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let a = Area::new(AreaInput { value: 50.0, unit: AreaUnit::M2 })?;
 assert_eq!(a.value(), "50 m²");
@@ -98,7 +98,7 @@ assert_eq!(a.value(), "50 m²");
 
 ```rust,ignore
 use arvo::measurement::{Speed, SpeedInput, SpeedUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let s = Speed::new(SpeedInput { value: 120.0, unit: SpeedUnit::Kmh })?;
 assert_eq!(s.value(), "120 km/h");
@@ -112,7 +112,7 @@ assert_eq!(s.value(), "120 km/h");
 
 ```rust,ignore
 use arvo::measurement::{Pressure, PressureInput, PressureUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let p = Pressure::new(PressureInput { value: 101.325, unit: PressureUnit::KPa })?;
 assert_eq!(p.value(), "101.325 kPa");
@@ -126,7 +126,7 @@ assert_eq!(p.value(), "101.325 kPa");
 
 ```rust,ignore
 use arvo::measurement::{Energy, EnergyInput, EnergyUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let e = Energy::new(EnergyInput { value: 500.0, unit: EnergyUnit::Kcal })?;
 assert_eq!(e.value(), "500 kcal");
@@ -140,7 +140,7 @@ assert_eq!(e.value(), "500 kcal");
 
 ```rust,ignore
 use arvo::measurement::{Power, PowerInput, PowerUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let p = Power::new(PowerInput { value: 3.7, unit: PowerUnit::KW })?;
 assert_eq!(p.value(), "3.7 kW");
@@ -154,7 +154,7 @@ assert_eq!(p.value(), "3.7 kW");
 
 ```rust,ignore
 use arvo::measurement::{Frequency, FrequencyInput, FrequencyUnit};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let f = Frequency::new(FrequencyInput { value: 2.4, unit: FrequencyUnit::GHz })?;
 assert_eq!(f.value(), "2.4 GHz");

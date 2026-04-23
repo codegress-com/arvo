@@ -4,7 +4,7 @@ Feature flag: `temporal`
 
 ```toml
 [dependencies]
-arvo = { version = "0.9", features = ["temporal"] }
+arvo = { version = "1.0", features = ["temporal"] }
 ```
 
 ---
@@ -18,7 +18,7 @@ A validated Unix timestamp — non-negative seconds since the Unix epoch (1970-0
 
 ```rust,ignore
 use arvo::temporal::UnixTimestamp;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let ts = UnixTimestamp::new(1_700_000_000).unwrap();
 assert_eq!(*ts.value(), 1_700_000_000);
@@ -45,7 +45,7 @@ A validated date of birth — strictly in the past and no more than 150 years ag
 
 ```rust,ignore
 use arvo::temporal::BirthDate;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 use chrono::NaiveDate;
 
 let dob = BirthDate::new(NaiveDate::from_ymd_opt(1990, 6, 15).unwrap()).unwrap();
@@ -80,7 +80,7 @@ A validated expiry date — strictly in the future at construction time.
 
 ```rust,ignore
 use arvo::temporal::ExpiryDate;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 use chrono::NaiveDate;
 
 let exp = ExpiryDate::new(NaiveDate::from_ymd_opt(2030, 12, 31).unwrap()).unwrap();
@@ -113,7 +113,7 @@ A validated time range — `start` must be strictly before `end`.
 
 ```rust,ignore
 use arvo::temporal::{TimeRange, TimeRangeInput};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 use chrono::{TimeZone, Utc};
 
 let range = TimeRange::new(TimeRangeInput {
@@ -153,7 +153,7 @@ Validated business hours for a single weekday — `open` must be strictly before
 
 ```rust,ignore
 use arvo::temporal::{BusinessHours, BusinessHoursInput};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 use chrono::{NaiveTime, Weekday};
 
 let hours = BusinessHours::new(BusinessHoursInput {

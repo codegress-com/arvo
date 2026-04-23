@@ -4,7 +4,7 @@ Feature flag: `net`
 
 ```toml
 [dependencies]
-arvo = { version = "0.9", features = ["net"] }
+arvo = { version = "1.0", features = ["net"] }
 ```
 
 ---
@@ -17,7 +17,7 @@ A validated URL. Accepts `http`, `https`, `ftp`, `ftps`, `ws`, and `wss` schemes
 
 ```rust,ignore
 use arvo::net::Url;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let url = Url::new("HTTPS://Example.COM/path".into())?;
 assert_eq!(url.value(), "https://example.com/path");
@@ -55,7 +55,7 @@ A validated domain name without a scheme (e.g. `"example.com"`).
 
 ```rust,ignore
 use arvo::net::Domain;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let domain = Domain::new("Example.COM".into())?;
 assert_eq!(domain.value(), "example.com");
@@ -86,7 +86,7 @@ A validated IPv4 address. Leading zeros in octets are rejected.
 
 ```rust,ignore
 use arvo::net::IpV4Address;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let ip = IpV4Address::new("192.168.1.1".into())?;
 assert_eq!(ip.value(), "192.168.1.1");
@@ -119,7 +119,7 @@ A validated IPv6 address, normalised to canonical compressed lowercase form.
 
 ```rust,ignore
 use arvo::net::IpV6Address;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let ip = IpV6Address::new("2001:0db8::0001".into())?;
 assert_eq!(ip.value(), "2001:db8::1");
@@ -149,7 +149,7 @@ A validated IP address — IPv4 or IPv6. Tries IPv4 first, then IPv6.
 
 ```rust,ignore
 use arvo::net::IpAddress;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let ip = IpAddress::new("192.168.1.1".into())?;
 assert!(ip.is_v4());
@@ -175,7 +175,7 @@ A validated network port number in the range `1..=65535`. Port 0 is reserved and
 
 ```rust,ignore
 use arvo::net::Port;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let port = Port::new(8080)?;
 assert_eq!(*port.value(), 8080);
@@ -207,7 +207,7 @@ A validated MAC address, normalised to lowercase colon-separated hex. Accepts co
 
 ```rust,ignore
 use arvo::net::MacAddress;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let mac = MacAddress::new("AA:BB:CC:DD:EE:FF".into())?;
 assert_eq!(mac.value(), "aa:bb:cc:dd:ee:ff");
@@ -240,7 +240,7 @@ A validated MIME type. Trimmed and lowercased. Parameters (e.g. `; charset=utf-8
 
 ```rust,ignore
 use arvo::net::MimeType;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let mime = MimeType::new("image/png".into())?;
 assert_eq!(mime.value(), "image/png");
@@ -276,7 +276,7 @@ A validated HTTP status code in the range `100..=599`.
 
 ```rust,ignore
 use arvo::net::HttpStatusCode;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let code = HttpStatusCode::new(200)?;
 assert!(code.is_success());
@@ -311,7 +311,7 @@ A validated API key — non-empty string. `Display` shows a masked form with onl
 
 ```rust,ignore
 use arvo::net::ApiKey;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let key = ApiKey::new("sk-1234567890abcd".into())?;
 assert_eq!(key.value(), "sk-1234567890abcd");  // full key

@@ -4,7 +4,7 @@ Feature flag: `identifiers`
 
 ```toml
 [dependencies]
-arvo = { version = "0.9", features = ["identifiers"] }
+arvo = { version = "1.0", features = ["identifiers"] }
 ```
 
 ---
@@ -18,7 +18,7 @@ A URL-safe slug: lowercase alphanumeric characters and hyphens only.
 
 ```rust,ignore
 use arvo::identifiers::Slug;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let slug = Slug::new("Hello-World".into())?;
 assert_eq!(slug.value(), "hello-world");
@@ -56,7 +56,7 @@ A validated EAN-13 barcode number.
 
 ```rust,ignore
 use arvo::identifiers::Ean13;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let ean = Ean13::new("4006381333931".into())?;
 assert_eq!(ean.value(), "4006381333931");
@@ -89,7 +89,7 @@ A validated EAN-8 barcode number.
 
 ```rust,ignore
 use arvo::identifiers::Ean8;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let ean = Ean8::new("73513537".into())?;
 assert_eq!(ean.value(), "73513537");
@@ -122,7 +122,7 @@ A validated ISBN-13 number.
 
 ```rust,ignore
 use arvo::identifiers::Isbn13;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let isbn = Isbn13::new("978-0-306-40615-7".into())?;
 assert_eq!(isbn.value(), "9780306406157");
@@ -156,7 +156,7 @@ A validated ISBN-10 number.
 
 ```rust,ignore
 use arvo::identifiers::Isbn10;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let isbn = Isbn10::new("0-306-40615-2".into())?;
 assert_eq!(isbn.value(), "0306406152");
@@ -190,7 +190,7 @@ A validated ISSN (International Standard Serial Number).
 
 ```rust,ignore
 use arvo::identifiers::Issn;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let issn = Issn::new("0317-8471".into())?;
 assert_eq!(issn.value(), "0317-8471");
@@ -224,7 +224,7 @@ A validated Vehicle Identification Number (VIN) per ISO 3779.
 
 ```rust,ignore
 use arvo::identifiers::Vin;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let vin = Vin::new("1HGBH41JXMN109186".into())?;
 assert_eq!(vin.wmi(), "1HG");

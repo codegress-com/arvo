@@ -4,7 +4,7 @@ Feature flag: `contact`
 
 ```toml
 [dependencies]
-arvo = { version = "0.9", features = ["contact"] }
+arvo = { version = "1.0", features = ["contact"] }
 ```
 
 ---
@@ -18,7 +18,7 @@ A validated, normalised email address.
 
 ```rust,ignore
 use arvo::contact::EmailAddress;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let email = EmailAddress::new("User@Example.COM".into())?;
 assert_eq!(email.value(), "user@example.com");
@@ -56,7 +56,7 @@ A validated ISO 3166-1 alpha-2 country code.
 
 ```rust,ignore
 use arvo::contact::CountryCode;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let code = CountryCode::new("cz".into())?;
 assert_eq!(code.value(), "CZ");
@@ -91,7 +91,7 @@ A validated phone number stored in canonical E.164 format.
 
 ```rust,ignore
 use arvo::contact::{CountryCode, PhoneNumber, PhoneNumberInput};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let phone = PhoneNumber::new(PhoneNumberInput {
     country_code: CountryCode::new("CZ".into())?,
@@ -145,7 +145,7 @@ A validated website URL. Accepts `http` and `https` schemes only. Scheme and hos
 
 ```rust,ignore
 use arvo::contact::Website;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let site = Website::new("https://EXAMPLE.COM/path".into())?;
 assert_eq!(site.value(), "https://example.com/path");
@@ -184,7 +184,7 @@ A validated composite postal address. All text fields are trimmed; empty or whit
 
 ```rust,ignore
 use arvo::contact::{CountryCode, PostalAddress, PostalAddressInput};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let addr = PostalAddress::new(PostalAddressInput {
     street:  "Václavské náměstí 1".into(),

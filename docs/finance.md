@@ -4,7 +4,7 @@ Feature flag: `finance`
 
 ```toml
 [dependencies]
-arvo = { version = "0.9", features = ["finance"] }
+arvo = { version = "1.0", features = ["finance"] }
 ```
 
 ---
@@ -18,7 +18,7 @@ A validated ISO 4217 alphabetic currency code.
 
 ```rust,ignore
 use arvo::finance::CurrencyCode;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let code = CurrencyCode::new("eur".into())?;
 assert_eq!(code.value(), "EUR");
@@ -54,7 +54,7 @@ A validated monetary amount with an associated currency.
 
 ```rust,ignore
 use arvo::finance::{CurrencyCode, Money, MoneyInput};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let money = Money::new(MoneyInput {
     amount: "10.50".parse()?,
@@ -94,7 +94,7 @@ A validated IBAN (International Bank Account Number) using the mod-97 algorithm.
 
 ```rust,ignore
 use arvo::finance::Iban;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let iban = Iban::new("GB82 WEST 1234 5698 7654 32".into())?;
 assert_eq!(iban.value(), "GB82WEST12345698765432");
@@ -133,7 +133,7 @@ A validated BIC (Bank Identifier Code / SWIFT code).
 
 ```rust,ignore
 use arvo::finance::Bic;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let bic = Bic::new("DEUTDEDB".into())?;
 assert_eq!(bic.bank_code(), "DEUT");
@@ -166,7 +166,7 @@ A validated EU VAT number.
 
 ```rust,ignore
 use arvo::finance::VatNumber;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let vat = VatNumber::new("CZ 1234 5678".into())?;
 assert_eq!(vat.value(), "CZ12345678");
@@ -192,7 +192,7 @@ A validated percentage in the range `0.0..=100.0`.
 
 ```rust,ignore
 use arvo::finance::Percentage;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let p = Percentage::new(42.5)?;
 assert_eq!(*p.value(), 42.5);
@@ -220,7 +220,7 @@ A validated currency exchange rate between two different currencies.
 
 ```rust,ignore
 use arvo::finance::{CurrencyCode, ExchangeRate, ExchangeRateInput};
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let rate = ExchangeRate::new(ExchangeRateInput {
     from: CurrencyCode::new("EUR".into())?,
@@ -259,7 +259,7 @@ A validated credit card number using the Luhn algorithm.
 
 ```rust,ignore
 use arvo::finance::CreditCardNumber;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let card = CreditCardNumber::new("4532 0151 1283 0366".into())?;
 assert_eq!(card.last_four(), "0366");
@@ -288,7 +288,7 @@ A validated credit/debit card expiry date that is not in the past.
 
 ```rust,ignore
 use arvo::finance::CardExpiryDate;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let exp = CardExpiryDate::new("12/28".into())?;
 assert_eq!(exp.value(), "12/28");

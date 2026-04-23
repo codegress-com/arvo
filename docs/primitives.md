@@ -4,7 +4,7 @@ Feature flag: `primitives`
 
 ```toml
 [dependencies]
-arvo = { version = "0.9", features = ["primitives"] }
+arvo = { version = "1.0", features = ["primitives"] }
 ```
 
 ---
@@ -18,7 +18,7 @@ A non-empty, trimmed string.
 
 ```rust,ignore
 use arvo::primitives::NonEmptyString;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let s = NonEmptyString::new("  hello  ".into())?;
 assert_eq!(s.value(), "hello");
@@ -51,7 +51,7 @@ A string whose length (in Unicode characters) is constrained at the type level.
 
 ```rust,ignore
 use arvo::primitives::BoundedString;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 type Username = BoundedString<3, 32>;
 
@@ -86,7 +86,7 @@ A strictly positive integer (`i64 > 0`).
 
 ```rust,ignore
 use arvo::primitives::PositiveInt;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let n = PositiveInt::new(42)?;
 assert_eq!(*n.value(), 42);
@@ -119,7 +119,7 @@ A non-negative integer (`i64 >= 0`).
 
 ```rust,ignore
 use arvo::primitives::NonNegativeInt;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let n = NonNegativeInt::new(0)?;
 assert_eq!(*n.value(), 0);
@@ -151,7 +151,7 @@ A strictly positive decimal (`rust_decimal::Decimal > 0`).
 
 ```rust,ignore
 use arvo::primitives::PositiveDecimal;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 use rust_decimal::Decimal;
 use std::str::FromStr;
 
@@ -184,7 +184,7 @@ A non-negative decimal (`rust_decimal::Decimal >= 0`).
 
 ```rust,ignore
 use arvo::primitives::NonNegativeDecimal;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 use rust_decimal::Decimal;
 
 let amount = NonNegativeDecimal::new(Decimal::ZERO)?;
@@ -215,7 +215,7 @@ A probability value in the closed interval `[0.0, 1.0]`.
 
 ```rust,ignore
 use arvo::primitives::Probability;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let p = Probability::new(0.75)?;
 assert_eq!(*p.value(), 0.75);
@@ -251,7 +251,7 @@ A CSS hex color in canonical `#RRGGBB` form.
 
 ```rust,ignore
 use arvo::primitives::HexColor;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let red = HexColor::new("#f00".into())?;
 assert_eq!(red.value(), "#FF0000");
@@ -293,7 +293,7 @@ A BCP 47 language tag (e.g. `"en-US"`, `"cs-CZ"`, `"fr"`).
 
 ```rust,ignore
 use arvo::primitives::Locale;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let locale = Locale::new("en_us".into())?;
 assert_eq!(locale.value(), "en-US");
@@ -331,7 +331,7 @@ A validated standard Base64-encoded string.
 
 ```rust,ignore
 use arvo::primitives::Base64String;
-use arvo::traits::ValueObject;
+use arvo::traits::{PrimitiveValue, ValueObject};
 
 let b = Base64String::new("aGVsbG8=".into())?;
 assert_eq!(b.decode(), b"hello");
