@@ -1,7 +1,7 @@
 use crate::errors::ValidationError;
 use crate::traits::{PrimitiveValue, ValueObject};
-use once_cell::sync::Lazy;
 use regex::Regex;
+use std::sync::LazyLock;
 
 /// Input type for [`EmailAddress`] — a raw string before validation.
 pub type EmailAddressInput = String;
@@ -10,8 +10,8 @@ pub type EmailAddressInput = String;
 ///
 /// Pattern checks for a local part, `@`, a domain, and a TLD of at least
 /// 2 characters. Full RFC 5322 compliance is intentionally out of scope.
-static EMAIL_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$").unwrap());
+static EMAIL_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$").unwrap());
 
 /// A validated, normalised email address.
 ///

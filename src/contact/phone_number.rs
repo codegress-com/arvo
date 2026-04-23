@@ -1,7 +1,7 @@
 use crate::errors::ValidationError;
 use crate::traits::{PrimitiveValue, ValueObject};
-use once_cell::sync::Lazy;
 use regex::Regex;
+use std::sync::LazyLock;
 
 use super::country_code::CountryCode;
 
@@ -15,7 +15,7 @@ pub struct PhoneNumberInput {
 }
 
 /// Validates the local number part: digits only, 4–14 characters.
-static NUMBER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4,14}$").unwrap());
+static NUMBER_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d{4,14}$").unwrap());
 
 /// A validated phone number stored in canonical E.164 format.
 ///

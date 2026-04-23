@@ -18,7 +18,7 @@ rust-version = "1.85"
 default = []
 
 # Domain modules — opt-in so you only pay for what you use
-contact = ["dep:once_cell", "dep:regex", "dep:url"]
+contact = ["dep:regex", "dep:url"]
 finance = ["dep:rust_decimal", "dep:chrono"]
 geo = []
 measurement = []
@@ -44,7 +44,6 @@ full = [
 
 [dependencies]
 thiserror = "2"
-once_cell = { version = "1", optional = true }
 regex = { version = "1", optional = true }
 rust_decimal = { version = "1.26", optional = true }
 chrono = { version = "0.4.23", optional = true, features = ["serde"] }

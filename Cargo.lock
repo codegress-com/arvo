@@ -49,7 +49,6 @@ version = "0.9.0"
 dependencies = [
  "base64",
  "chrono",
- "once_cell",
  "regex",
  "rust_decimal",
  "serde",
